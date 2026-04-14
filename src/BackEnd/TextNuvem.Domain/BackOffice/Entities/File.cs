@@ -2,7 +2,7 @@ using TextNuvem.Domain.BackOffice.Abstraction;
 
 namespace TextNuvem.Domain.BackOffice.Entities;
 
-public sealed class File : Entity
+public sealed class File : Entity, IEquatable<File>
 {
     private File()
     {
@@ -15,8 +15,18 @@ public sealed class File : Entity
         Folder = folder;
     }
 
-    public string Name { get; private init; }
-    public string Content { get; private init; }
-    public Folder Folder { get; private init; }
-    
+    public string Name { get; private set; }
+    public string Content { get; private set; }
+    public Folder Folder { get; private set; }
+
+    public bool Equals(File? other)
+    {
+        if (other is null) return false;
+        return other.GetHashCode() == GetHashCode() && Folder.Equals(other.Folder);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Name, Content);
+    }
 }

@@ -25,11 +25,11 @@ public sealed class Project :Entity
         foreach (var folder in folders)
         {
             var folderExists = Folders.FirstOrDefault(x => x.Id == folder.Id);
-            if (folderExists is not null)
-            {
-                //Verificar se a pasta sofreu alteração atravez do equals personalizado !!
-            }
-            Folders.Add(folder);
+            
+            if (folderExists is not null) 
+                Folders[Folders.IndexOf(folderExists)] = folder;
+            else
+                Folders.Add(folder);
         }
     }
 }

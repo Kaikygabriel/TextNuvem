@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="TextNuvem.Application/TextNuvem.Application.csproj" />
   <Project Path="TextNuvem.Domain/TextNuvem.Domain.csproj" />
 </Solution>
