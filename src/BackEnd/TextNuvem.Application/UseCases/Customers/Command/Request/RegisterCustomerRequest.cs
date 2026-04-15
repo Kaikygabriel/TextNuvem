@@ -1,11 +1,15 @@
+using MediatR;
+using TextNuvem.Application.UseCases.Customers.Command.Response;
 using TextNuvem.Domain.BackOffice.Commum;
+using TextNuvem.Domain.BackOffice.Entities;
 
-namespace TextNuvem.Application.UseCases.Customer.Command.Request;
+namespace TextNuvem.Application.UseCases.Customers.Command.Request;
 
 
-public record RegisterCustomerRequest(string Password,string Email,string Name)
+public record RegisterCustomerRequest(string Password,string Email,string Name) 
+    : IRequest<Result<AuthCustomerResponse>>
 {
-    public Result<Domain.BackOffice.Entities.Customer> ToEntity()
+    public Result<Customer> ToEntity()
     {
         var resultCreatePassword = Domain.BackOffice.ValueObject.Password.Factory.Create(Password);
         if (!resultCreatePassword.IsSuccess)
@@ -15,6 +19,6 @@ public record RegisterCustomerRequest(string Password,string Email,string Name)
         if (!resultCreateEmail.IsSuccess)
             return resultCreateEmail.Error;
 
-        return new Domain.BackOffice.Entities.Customer(resultCreateEmail.Value, resultCreatePassword.Value, Name);
+        return new Customer(resultCreateEmail.Value, resultCreatePassword.Value, Name);
     }
 }
