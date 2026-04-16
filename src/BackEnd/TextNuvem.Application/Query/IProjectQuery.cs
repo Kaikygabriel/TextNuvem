@@ -4,5 +4,5 @@ namespace TextNuvem.Application.Query;
 
 public interface IProjectQuery
 {
-    Task<GetProjectDto> GetById(Guid id); 
+    Task<GetProjectDto?> GetById(Guid id); 
 }

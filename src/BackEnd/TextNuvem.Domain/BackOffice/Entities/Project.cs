@@ -15,10 +15,11 @@ public sealed class Project :Entity
         CustomerId = customerId;
     }
 
+    public DateTime LastUpdate { get; private set; } = DateTime.UtcNow;
     public string Name { get;private set; }
     public Customer Customer { get; private init; }
     public Guid CustomerId { get; private init; }
-    public List<Folder> Folders { get;private set; } = [];
+    public List<Folder> Folders { get;private set; } = [];//TEXT -> compress ->  Json -> List<Folder>
 
     public void UpdateFolders(List<Folder>folders)
     {
@@ -31,5 +32,10 @@ public sealed class Project :Entity
             else
                 Folders.Add(folder);
         }
+
+        UpdateDate();
     }
+
+    private void UpdateDate()
+        => LastUpdate = DateTime.UtcNow;
 }

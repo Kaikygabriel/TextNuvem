@@ -21,7 +21,7 @@ public sealed class Customer: Entity
     public Password Password { get;private set; }
     public string Name { get; private init; }
     public List<Project> Projects { get; private set; } = [];
-    public RefreshToken RefreshToken { get; private set; }
+    public RefreshToken? RefreshToken { get; private set; }
 
     public Result AddProject(Project project)
     {

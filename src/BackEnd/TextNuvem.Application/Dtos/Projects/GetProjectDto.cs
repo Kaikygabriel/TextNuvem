@@ -2,4 +2,4 @@ using System.Security.AccessControl;
 
 namespace TextNuvem.Application.Dtos.Projects;
 
-public record GetProjectDto(string Name,DateTime LastUpdate,string ContentFolders);
+public record GetProjectDto(Guid Id,string Name,DateTime LastUpdate,string ContentFolders);
