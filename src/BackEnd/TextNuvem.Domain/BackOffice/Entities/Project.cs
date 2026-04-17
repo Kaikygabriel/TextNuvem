@@ -10,6 +10,7 @@ public sealed class Project :Entity
     }
     public Project(string name, Customer customer, Guid customerId)
     {
+        Id = Guid.NewGuid();
         Name = name;
         Customer = customer;
         CustomerId = customerId;
@@ -23,8 +24,16 @@ public sealed class Project :Entity
 
     public void UpdateFolders(List<Folder>folders)
     {
+        if (Folders is null ||!Folders.Any())
+        {
+            Folders = folders;
+            Console.WriteLine("Esse Lado");
+            return;
+        }
+        
         foreach (var folder in folders)
         {
+            Console.WriteLine(folder.Id);
             var folderExists = Folders.FirstOrDefault(x => x.Id == folder.Id);
             
             if (folderExists is not null) 

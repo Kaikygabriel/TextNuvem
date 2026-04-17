@@ -18,8 +18,8 @@ public class Email
         => string.IsNullOrWhiteSpace(address) ||
            !address.Contains('@') ||
            address.Split('@').Length != 2 ||
-           address.Split('@')[1].Length >= 2 ||
-           address.Split('@')[0].Length >= 2;
+           address.Split('@')[1].Length <= 2 ||
+           address.Split('@')[0].Length <= 2;
 
     public static class Factory 
     {

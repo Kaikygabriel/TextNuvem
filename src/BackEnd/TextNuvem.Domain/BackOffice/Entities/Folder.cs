@@ -4,35 +4,30 @@ namespace TextNuvem.Domain.BackOffice.Entities;
 
 public sealed class Folder : Entity , IEquatable<Folder>
 {
-    private Folder()
-    {
-        
-    }
+    public Folder() { }
+
     public Folder(string path,  Guid projectId)
     {
+        Id = Guid.NewGuid();
         Path = path;
         ProjectId = projectId;
     }
     
-    public Folder(string path, Guid projectId,Guid folderParentId)
+    public Folder(string path, Guid projectId,IEnumerable<Folder>folders,IEnumerable<File>files)
     {
+        Id = Guid.NewGuid();
         Path = path;
         ProjectId = projectId;
         
-        FolderParentId = folderParentId;
+        Folders = folders.ToList();
+        Files = files.ToList();
     }
     
     public string Path { get;private set; }
-    public Project Project { get;private init; }
     public Guid ProjectId { get; private init; }
     
-    
-    public Folder? FolderParent { get;private init; }
-    public Guid? FolderParentId { get;private init; }
-
-
-    public List<Folder> Folders { get; private set; } = [];
-    public List<File>Files { get;private  set; } = [];
+    public List<Folder> Folders { get; private  set; } = [];
+    public List<File>Files { get; private  set; } = [];
     
     public bool Equals(Folder? other)
     {

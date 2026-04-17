@@ -4,20 +4,21 @@ namespace TextNuvem.Domain.BackOffice.Entities;
 
 public sealed class File : Entity, IEquatable<File>
 {
-    private File()
+    public File() { }
+
+    public File(string name, string content,Guid folderId)
     {
-        
-    }
-    public File(string name, string content, Folder folder)
-    {
+        Id = Guid.NewGuid();
         Name = name;
         Content = content;
-        Folder = folder;
+        FolderId = folderId;
     }
 
-    public string Name { get; private set; }
+    public string Name { get;private set; }
     public string Content { get; private set; }
-    public Folder Folder { get; private set; }
+    
+    public Folder Folder { get;  private  init; }
+    public Guid FolderId { get;private  init; }
 
     public bool Equals(File? other)
     {

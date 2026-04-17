@@ -37,6 +37,9 @@ internal sealed class RegisterCustomerHandler : IRequestHandler<RegisterCustomer
         
         customer.SetRefreshToken(refreshToken);
 
+        _customerRepository.Create(customer);
+        await _unitOfWork.CommitAsync();
+        
         var response = new AuthCustomerResponse(token, refreshToken.Token, customer.Id);
         return response;
     }

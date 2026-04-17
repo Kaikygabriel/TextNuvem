@@ -19,9 +19,6 @@ public record FolderDto
     
     public static implicit operator Folder(FolderDto folderDto)
     {
-        if(folderDto.FolderParentId is not null)
-            return new Folder(folderDto.Path, folderDto.ProjectId,(Guid)folderDto.FolderParentId);
-        
         return new Folder(folderDto.Path, folderDto.ProjectId);
     }
 

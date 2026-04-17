@@ -12,6 +12,7 @@ public sealed class Customer: Entity
     }
     public Customer(Email email, Password password, string name)
     {
+        Id = Guid.NewGuid();
         Email = email;
         Password = password;
         Name = name;
