@@ -26,7 +26,7 @@ internal sealed class CompactorService : ICompactorService
         return Convert.ToBase64String(output.ToArray());
     }
 
-    public T? DecompressObject<T>(string obj)
+    public T DecompressObject<T>(string obj)
     {
         var compressedData = Convert.FromBase64String(obj);
         using var input = new MemoryStream(compressedData);
