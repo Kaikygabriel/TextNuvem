@@ -1,0 +1,43 @@
+﻿@using TextNuvem.Service
+@inherits LayoutComponentBase
+@inject AuthService ServiceAuth
+@inject NavigationManager Nav
+@inject LocalStorageService LocalStorage
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            @if (string.IsNullOrWhiteSpace(Email))
+            {
+                
+            }
+            else
+            {
+                <p>@Email</p>
+            }
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code{
+    private string Email;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (!(await ServiceAuth.CustomerIsAuthentication()))
+        {
+            Nav.NavigateTo("/Customer/Login");
+            return;
+        }
+
+        Email = await LocalStorage.GetEmail();
+    }
+}

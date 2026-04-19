@@ -1,0 +1,67 @@
+@page "/Customer/Login"
+@using System.Text
+@using System.Text.Json
+@using TextNuvem.Dtos.Customers
+@using TextNuvem.Service
+@inject IHttpClientFactory Factory
+@inject NavigationManager Nav
+@inject LocalStorageService serviceStorage
+
+
+<h3>Login</h3>
+
+<EditForm Model="_customer" OnValidSubmit="Handle" FormName="handle">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <InputText id="email" type="email" class="form-control" @bind-Value="_customer.Email"></InputText>
+    </div>
+
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <InputText id="password"  type="password" class="form-control" @bind-Value="_customer.Password"></InputText>
+    </div>
+    <button type="submit" class="btn btn-success">Login</button>
+    
+</EditForm>
+
+<a href="/Customer/Register" class="link-offset-1-hover link-secondary">Register</a>
+@code 
+{
+    private CustomerLoginDto _customer { get; set; } = new();
+    
+    public async Task Handle()
+    {
+        var client = Factory.CreateClient("Api");
+
+        var jsonRequest = JsonSerializer.Serialize(_customer);
+        var content = new StringContent(
+            jsonRequest,
+            Encoding.UTF8,
+            "application/json");
+        
+        var response = await client.PostAsync("https://localhost:7249/Customer/Login",content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Nav.NavigateTo("/");
+            return;
+        }
+        
+        var raw = await response.Content.ReadAsStringAsync();
+        var responseBody = await response.Content.ReadAsStreamAsync();
+        
+        var options = new JsonSerializerOptions 
+        { 
+            PropertyNameCaseInsensitive = true 
+        };
+        var json = JsonSerializer.Deserialize<AuthCustomerResponse>(responseBody,options);
+
+        await serviceStorage.AddAuthCustomerInStorage(json,_customer.Email);
+        
+        Nav.NavigateTo("/");
+    }
+}
