@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TextNuvem.Api.Extensions;
 using TextNuvem.Application.Ioc;
 using TextNuvem.Infra.Data.Context;
 using TextNuvem.Infra.Ioc;
@@ -14,15 +15,22 @@ builder.Services.AddInfra(builder.Configuration);
 builder.Services.AddDbContext<AppDbContext>(x =>
     x.UseSqlServer(
         connection,x => x.MigrationsAssembly(typeof(Program).Assembly)));
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddDocumentation();
+builder.Services.AddCorsFromApplication();
 
 var app = builder.Build();
 
-app.UseSwagger();
+if (app.Environment.IsDevelopment())
+    app.UseExceptionGlobalHandler();
 
-app.UseSwaggerUI();
+app.MapOpenApi();
+
+app.UseSwaggerUI(x=>x.SwaggerEndpoint("/openapi/v1.json","v1"));
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowBlazorWasm");
 
 app.UseAuthentication();
 

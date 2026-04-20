@@ -1,5 +1,6 @@
 using MediatR;
 using TextNuvem.Application.Dtos;
+using TextNuvem.Application.Ioc.Folders;
 using TextNuvem.Application.Services;
 using TextNuvem.Application.UseCases.Project.Command.Request;
 using TextNuvem.Domain.BackOffice.Abstraction;
@@ -27,8 +28,10 @@ internal sealed class UpdateFilesInProjectHandler : IRequestHandler<UpdateFilesI
         var project = await _projectRepository.GetById(request.ProjectId);
         if (project is null)
             return new Error("Project not found!");
-        
-        var folders = _compactorService.DecompressObject<List<Folder>>(request.CompressFolders);
+
+        var folders = _compactorService.DecompressObject<List<FolderDatabaseDto>>(request.CompressFolders)
+            .Select(x => (Folder)x).ToList();
+     
         project.UpdateFolders(folders);
         
         _projectRepository.Update(project);

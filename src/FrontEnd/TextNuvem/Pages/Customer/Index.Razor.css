@@ -1,0 +1,66 @@
+/* BASE */
+.dashboard {
+    background: #f5f7fb;
+    min-height: 100vh;
+}
+
+/* TOPBAR */
+.topbar {
+    height: 60px;
+    background: linear-gradient(90deg, #3b5bdb, #5f7cff);
+    color: white;
+}
+
+.search {
+    border-radius: 20px;
+    border: none;
+    padding: 8px 15px;
+}
+
+/* CARDS */
+.card {
+    border-radius: 15px;
+    padding: 25px;
+    color: white;
+    border: none;
+}
+
+.gradient-blue {
+    background: linear-gradient(135deg, #4c6ef5, #339af0);
+}
+
+.gradient-purple {
+    background: linear-gradient(135deg, #845ef7, #f06595);
+}
+
+/* LISTA DE PROJETOS */
+.project-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.project-item:last-child {
+    border-bottom: none;
+}
+
+.project-item:hover {
+    background: #f1f3f5;
+    border-radius: 10px;
+    transition: 0.2s;
+}
+
+/* CARD LISTA */
+.card.shadow-sm {
+    border-radius: 15px;
+    background: white;
+}
+
+.text-project{
+    color : black;
+    font-size: 20px;
+    font-weight: bolder;
+}
+
+.cursor-pointer{
+    cursor:  pointer;
+}

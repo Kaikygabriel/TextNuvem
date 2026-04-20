@@ -16,12 +16,20 @@ internal sealed class CustomerQuery : ICustomerQuery
     }
 
     public async Task<CustomerDashBoard?> GetDashBoardById(Guid id)
-        => await _appDbContext.Customers.Select(x => new
-            CustomerDashBoard(
-                x.Id
-                ,ProjectDto.ToProjectDtos(x.Projects)
-                ,x.Name
-                ,x.Email.Address))
-            .FirstOrDefaultAsync(x=>x.Id == id);
+    {
+        var customer = await _appDbContext.Customers
+                .Include(x=>x.Projects)
+                .FirstOrDefaultAsync(x=>x.Id == id);
+        
+        if (customer == null)
+            return null;
+
+        return new CustomerDashBoard(
+            customer.Id,
+            ProjectDto.ToProjectDtos(customer.Projects),
+            customer.Name,
+            customer.Email.Address
+        );
+    }
     
 }

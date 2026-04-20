@@ -1,0 +1,61 @@
+.editor-container {
+    display: flex;
+    height: 100vh;
+    background: #1e1e2f;
+    color: #fff;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 250px;
+    background: #151521;
+    border-right: 1px solid #2c2c3a;
+    overflow-y: auto;
+}
+
+.folder-name {
+    padding: 8px 15px;
+    font-weight: bold;
+    color: #aaa;
+}
+
+.file {
+    padding: 6px 25px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.file:hover {
+    background: #2a2a40;
+}
+
+/* EDITOR */
+.editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-header {
+    padding: 10px 15px;
+    background: #2a2a40;
+    border-bottom: 1px solid #444;
+}
+
+.editor-textarea {
+    flex: 1;
+    background: #1e1e2f;
+    color: #fff;
+    border: none;
+    padding: 15px;
+    font-family: monospace;
+    font-size: 14px;
+    outline: none;
+}
+
+/* EMPTY */
+.empty-state {
+    margin: auto;
+    text-align: center;
+    color: #aaa;
+}

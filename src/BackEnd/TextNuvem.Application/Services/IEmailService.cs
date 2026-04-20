@@ -1,4 +1,5 @@
 using TextNuvem.Application.Dtos;
+using TextNuvem.Application.Dtos.Email;
 using TextNuvem.Domain.BackOffice.Abstraction;
 
 namespace TextNuvem.Application.Services;

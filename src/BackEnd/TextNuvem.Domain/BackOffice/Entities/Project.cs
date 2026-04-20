@@ -30,17 +30,8 @@ public sealed class Project :Entity
             Console.WriteLine("Esse Lado");
             return;
         }
-        
-        foreach (var folder in folders)
-        {
-            Console.WriteLine(folder.Id);
-            var folderExists = Folders.FirstOrDefault(x => x.Id == folder.Id);
-            
-            if (folderExists is not null) 
-                Folders[Folders.IndexOf(folderExists)] = folder;
-            else
-                Folders.Add(folder);
-        }
+
+        Folders = folders;
 
         UpdateDate();
     }

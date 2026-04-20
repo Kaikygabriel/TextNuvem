@@ -37,7 +37,6 @@
     
     public async Task Handle()
     {
-        Console.WriteLine("Ativou");
         var client = Factory.CreateClient("Api");
 
         var jsonRequest = JsonSerializer.Serialize(_customer);
@@ -46,7 +45,7 @@
             Encoding.UTF8,
             "application/json");
         
-        var response = await client.PostAsync("https://localhost:7249/Customer/Register",content);
+        var response = await client.PostAsync("/Customer/Register",content);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -64,7 +63,7 @@
         };
         var json = JsonSerializer.Deserialize<AuthCustomerResponse>(responseBody,options);
 
-        await serviceStorage.AddAuthCustomerInStorage(json,_customer.Email);
+        await serviceStorage.AddAuthCustomerInStorage(json);
         
         Nav.NavigateTo("/");
     }

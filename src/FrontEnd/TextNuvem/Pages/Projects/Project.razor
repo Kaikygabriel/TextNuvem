@@ -1,0 +1,94 @@
+@page "/editor"
+@using TextNuvem.Dtos.Folder
+@using TextNuvem.Dtos
+@layout EmptyLayout 
+
+<div class="editor-container">
+
+    <!-- SIDEBAR (PASTAS) -->
+    <div class="sidebar">
+        <h6 class="px-3 mt-3 text-muted">Arquivos</h6>
+
+        @if (_root is not null)
+        {
+            @RenderFolder(_root)
+        }
+    </div>
+
+    <!-- EDITOR -->
+    <div class="editor">
+
+        @if (_selectedFile is null)
+        {
+            <div class="empty-state">
+                <h4>Selecione um arquivo</h4>
+                <p class="text-muted">Escolha um arquivo na esquerda para editar</p>
+            </div>
+        }
+        else
+        {
+            <div class="editor-header">
+                <strong>@_selectedFile.Name</strong>
+            </div>
+
+            <textarea class="editor-textarea"
+                      @bind="_selectedContent">
+            </textarea>
+        }
+    </div>
+</div>
+
+@code {
+    private FolderDto? _root;
+    private File? _selectedFile;
+    private string _selectedContent = "";
+
+    protected override void OnInitialized()
+    {
+        // MOCK pra testar (depois você liga na API)
+        _root = new FolderDto
+        {
+            Id = Guid.NewGuid(),
+            Path = "Root",
+            Files = new()
+            {
+                new File("index.txt", "Conteúdo inicial...", Guid.NewGuid()),
+                new File("readme.md", "Documentação aqui...", Guid.NewGuid())
+            },
+            Folders = new()
+            {
+                new FolderDto
+                {
+                    Id = Guid.NewGuid(),
+                    Path = "SubPasta",
+                    Files = new()
+                    {
+                        new File("file1.txt", "Teste", Guid.NewGuid())
+                    }
+                }
+            }
+        };
+    }
+
+    RenderFragment RenderFolder(FolderDto folder) => @<div class="folder">
+                                                         <div class="folder-name">📁 @folder.Path</div>
+
+                                                         @foreach (var file in folder.Files)
+                                                         {
+                                                             <div class="file" @onclick="() => SelectFile(file)">
+                                                                 📄 @file.Name
+                                                             </div>
+                                                         }
+
+                                                         @foreach (var sub in folder.Folders)
+                                                         {
+                                                             @RenderFolder(sub)
+                                                         }
+                                                     </div>;
+
+    void SelectFile(File file)
+    {
+        _selectedFile = file;
+        _selectedContent = file.Content;
+    }
+}

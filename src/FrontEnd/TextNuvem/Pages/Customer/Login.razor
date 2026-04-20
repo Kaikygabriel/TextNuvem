@@ -42,7 +42,7 @@
             Encoding.UTF8,
             "application/json");
         
-        var response = await client.PostAsync("https://localhost:7249/Customer/Login",content);
+        var response = await client.PostAsync("/Customer/Login",content);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -60,7 +60,7 @@
         };
         var json = JsonSerializer.Deserialize<AuthCustomerResponse>(responseBody,options);
 
-        await serviceStorage.AddAuthCustomerInStorage(json,_customer.Email);
+        await serviceStorage.AddAuthCustomerInStorage(json);
         
         Nav.NavigateTo("/");
     }

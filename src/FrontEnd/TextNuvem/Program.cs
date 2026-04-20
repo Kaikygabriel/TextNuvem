@@ -9,7 +9,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddHttpClient("Api", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7249");
+    client.BaseAddress = new Uri("https://localhost:7249/");
 })
 .AddHttpMessageHandler<AuthService>(); ;
 

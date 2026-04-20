@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using TextNuvem.Domain.BackOffice.Entities;
 using File = TextNuvem.Domain.BackOffice.Entities.File;
 
-namespace TextNuvem.Application.Dtos;
+namespace TextNuvem.Application.Dtos.Folder;
 
 public record FolderDto
 {
@@ -17,11 +16,11 @@ public record FolderDto
     public List<FolderDto> Folders { get; set; } = [];
     public List<File>Files { get;set; } = [];
     
-    public static implicit operator Folder(FolderDto folderDto)
+    public static implicit operator Domain.BackOffice.Entities.Folder(FolderDto folderDto)
     {
-        return new Folder(folderDto.Path, folderDto.ProjectId);
+        return new Domain.BackOffice.Entities.Folder(folderDto.Path, folderDto.ProjectId);
     }
 
-    public static List<Folder> ToFolder(IEnumerable<FolderDto> folders)
-        => folders.Select(x => (Folder)x).ToList();
+    public static List<Domain.BackOffice.Entities.Folder> ToFolder(IEnumerable<FolderDto> folders)
+        => folders.Select(x => (Domain.BackOffice.Entities.Folder)x).ToList();
 }

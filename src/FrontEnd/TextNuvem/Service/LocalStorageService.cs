@@ -13,11 +13,10 @@ public sealed class LocalStorageService
           _js = js;
      }
      
-     public async Task AddAuthCustomerInStorage(AuthCustomerResponse response,string email)
+     public async Task AddAuthCustomerInStorage(AuthCustomerResponse response)
      {
           await _js.InvokeVoidAsync("localStorage.setItem",AuthConfiguration.Token_Key, response.Token);
           await _js.InvokeVoidAsync("localStorage.setItem",AuthConfiguration.Customer_Id, response.CustomerId);
-          await _js.InvokeVoidAsync("localStorage.setItem","Email",email);
 
           var token = await _js.InvokeAsync<string>("localStorage.getItem", "authToken");
      }
