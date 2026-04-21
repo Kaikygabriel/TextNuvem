@@ -30,6 +30,20 @@ public class ProjectController : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
     
+    [HttpPost("SetFavorite")]
+    public async Task<ActionResult> SetFavorite(SetFavoriteRequest request)
+    {
+        var result = await _sender.Send(request);
+        return result.IsSuccess ? Ok() : BadRequest(result.Error);
+    }
+    
+    [HttpPost("RemoveFavorite")]
+    public async Task<ActionResult> RemoveFavorite(RemoveFavoriteRequest request)
+    {
+        var result = await _sender.Send(request);
+        return result.IsSuccess ? Ok() : BadRequest(result.Error);
+    }
+    
     [HttpPost("Create")]
     public async Task<ActionResult> Create(CreateProjectRequest request)
     {

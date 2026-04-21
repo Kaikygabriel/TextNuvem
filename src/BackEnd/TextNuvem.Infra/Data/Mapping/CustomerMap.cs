@@ -5,9 +5,7 @@ using TextNuvem.Domain.BackOffice.Entities;
 namespace TextNuvem.Infra.Data.Mapping;
 
 internal sealed class CustomerMap:IEntityTypeConfiguration<Customer>
-{
-  
-
+{ 
     public void Configure(EntityTypeBuilder<Customer> builder)
     {
         builder.ToTable("Customer");

@@ -1,6 +1,6 @@
 using File = TextNuvem.Domain.BackOffice.Entities.File;
 
-namespace TextNuvem.Infra.Dtos;
+namespace TextNuvem.Infra.Dtos.Files;
 
 public record FileDatabaseDto(string Name,string Content,Guid FolderId)
 {

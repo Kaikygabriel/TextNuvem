@@ -20,14 +20,19 @@ public sealed class Project :Entity
     public string Name { get;private set; }
     public Customer Customer { get; private init; }
     public Guid CustomerId { get; private init; }
-    public List<Folder> Folders { get;private set; } = [];//TEXT -> compress ->  Json -> List<Folder>
+    public List<Folder> Folders { get;private set; } = [];
+    public bool IsFavorite { get;private set; }
 
+    public void SetFavorite()
+        => IsFavorite = true;
+    public void RemoveFavorite()
+        => IsFavorite = false;
+    
     public void UpdateFolders(List<Folder>folders)
     {
         if (Folders is null ||!Folders.Any())
         {
             Folders = folders;
-            Console.WriteLine("Esse Lado");
             return;
         }
 

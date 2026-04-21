@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using TextNuvem.Domain.BackOffice.Entities;
+using TextNuvem.Infra.Dtos.Files;
 using File = TextNuvem.Domain.BackOffice.Entities.File;
 
 namespace TextNuvem.Infra.Dtos.Folders;

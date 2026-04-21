@@ -3,4 +3,5 @@
   <Project Path="TextNuvem.Application/TextNuvem.Application.csproj" />
   <Project Path="TextNuvem.Domain/TextNuvem.Domain.csproj" />
   <Project Path="TextNuvem.Infra/TextNuvem.Infra.csproj" />
+  <Project Path="TextNuvem.Test/TextNuvem.Test.csproj" />
 </Solution>
