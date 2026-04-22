@@ -11,9 +11,9 @@ public sealed class File
         FolderId = folderId;
     }
 
-    public string Name { get;private set; }
-    public string Content { get; private set; }
+    public string Name { get; set; }
+    public string Content { get;  set; }
     
-    public Guid FolderId { get;private  init; }
+    public Guid FolderId { get;  init; }
     
 }

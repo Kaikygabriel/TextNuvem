@@ -1,94 +1,215 @@
-@page "/editor"
+@page "/Editor/{id:guid}"
+@using RestSharp
 @using TextNuvem.Dtos.Folder
 @using TextNuvem.Dtos
-@layout EmptyLayout 
+@using TextNuvem.Dtos.Projects
+@using TextNuvem.Service
+@layout EmptyLayout
+@inject IJSRuntime JS
+@inject CompactorService service;
+@inject NavigationManager Nav
 
 <div class="editor-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h6>Arquivos</h6>
+        </div>
 
-    <!-- SIDEBAR (PASTAS) -->
-    <div class="sidebar">
-        <h6 class="px-3 mt-3 text-muted">Arquivos</h6>
+        <div class="sidebar-content">
+            @if (_root is not null)
+            {
+                @RenderFolder(_root)
+            }
+        </div>
+    </aside>
 
-        @if (_root is not null)
-        {
-            @RenderFolder(_root)
-        }
-    </div>
-
-    <!-- EDITOR -->
-    <div class="editor">
-
+    <main class="editor">
         @if (_selectedFile is null)
         {
             <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
                 <h4>Selecione um arquivo</h4>
-                <p class="text-muted">Escolha um arquivo na esquerda para editar</p>
+                <p>Escolha um arquivo na esquerda para editar</p>
             </div>
         }
         else
         {
             <div class="editor-header">
-                <strong>@_selectedFile.Name</strong>
+                <div class="file-info">
+                    <i class="bi bi-file-earmark-code"></i>
+                    <strong>@_selectedFile.Name</strong>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <small class="file-path">@_selectedFile.Name</small>
+                    <button class="btn btn-sm btn-primary" @onclick="SaveCurrentFile">
+                        Salvar
+                    </button>
+                </div>
             </div>
 
-            <textarea class="editor-textarea"
-                      @bind="_selectedContent">
-            </textarea>
+            <div id="monaco-editor" class="monaco-host"></div>
         }
-    </div>
+    </main>
 </div>
 
 @code {
+    [Parameter] 
+    public Guid id { get; set; }
+    
     private FolderDto? _root;
     private File? _selectedFile;
     private string _selectedContent = "";
+    private IJSObjectReference? _module;
+    private bool _editorReady;
+    private bool _pendingEditorInit;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // MOCK pra testar (depois você liga na API)
-        _root = new FolderDto
+        var client = new RestClient();
+        var request = new RestRequest($"https://localhost:7249/Project?ProjectId={id}");
+        var response = await client.GetAsync<GetProjectDto>(request);
+        if (response is null)
         {
-            Id = Guid.NewGuid(),
-            Path = "Root",
-            Files = new()
-            {
-                new File("index.txt", "Conteúdo inicial...", Guid.NewGuid()),
-                new File("readme.md", "Documentação aqui...", Guid.NewGuid())
-            },
-            Folders = new()
-            {
-                new FolderDto
-                {
-                    Id = Guid.NewGuid(),
-                    Path = "SubPasta",
-                    Files = new()
-                    {
-                        new File("file1.txt", "Teste", Guid.NewGuid())
-                    }
-                }
-            }
-        };
+            Nav.NavigateTo("/");
+        }
+
+        _root = service.DecompressObject<IEnumerable<FolderDto>>(response?.ContentFolders).FirstOrDefault();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./js/monacoInterop.js"
+            );
+
+            return;
+        }
+
+        if (_pendingEditorInit && _module is not null && _selectedFile is not null)
+        {
+            await _module.InvokeVoidAsync(
+                "createEditor",
+                "monaco-editor",
+                _selectedContent,
+                GetLanguage(_selectedFile.Name)
+            );
+
+            _editorReady = true;
+            _pendingEditorInit = false;
+        }
+    }
+
+    private static string GetLanguage(string fileName)
+    {
+        if (fileName.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+            return "csharp";
+
+        if (fileName.EndsWith(".js", StringComparison.OrdinalIgnoreCase))
+            return "javascript";
+
+        if (fileName.EndsWith(".ts", StringComparison.OrdinalIgnoreCase))
+            return "typescript";
+
+        if (fileName.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+            return "html";
+
+        if (fileName.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
+            return "css";
+
+        if (fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            return "json";
+
+        if (fileName.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+            return "markdown";
+
+        return "plaintext";
     }
 
     RenderFragment RenderFolder(FolderDto folder) => @<div class="folder">
-                                                         <div class="folder-name">📁 @folder.Path</div>
+        <div class="folder-name">
+            <i class="bi bi-folder2"></i>
+            <span>@folder.Path</span>
+        </div>
 
-                                                         @foreach (var file in folder.Files)
-                                                         {
-                                                             <div class="file" @onclick="() => SelectFile(file)">
-                                                                 📄 @file.Name
-                                                             </div>
-                                                         }
+        @foreach (var file in folder.Files)
+        {
+            <div class="file @( _selectedFile?.Name == file.Name ? "active" : "" )"
+                 @onclick="() => SelectFile(file)">
+                <i class="bi bi-file-earmark"></i>
+                <span>@file.Name</span>
+            </div>
+        }
 
-                                                         @foreach (var sub in folder.Folders)
-                                                         {
-                                                             @RenderFolder(sub)
-                                                         }
-                                                     </div>;
+        @foreach (var sub in folder.Folders)
+        {
+            @RenderFolder(sub)
+        }
+    </div>;
 
-    void SelectFile(File file)
+    private async Task SelectFile(File file)
     {
+        if (_selectedFile is not null && _editorReady)
+        {
+            await SaveCurrentFile();
+        }
+
         _selectedFile = file;
         _selectedContent = file.Content;
+
+        if (_editorReady && _module is not null)
+        {
+            await _module.InvokeVoidAsync("setEditorValue", _selectedContent);
+            await _module.InvokeVoidAsync("setLanguage", GetLanguage(file.Name));
+        }
+        else
+        {
+            _pendingEditorInit = true;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveCurrentFile()
+    {
+        if (_selectedFile is null || _module is null || _root is null)
+            return;
+
+        var content = await _module.InvokeAsync<string>("getEditorValue");
+
+        var fileInTree = FindFileById(_root, _selectedFile.Name);
+        if (fileInTree is null)
+            return;
+
+        fileInTree.Content = content;
+        _selectedContent = content;
+        _selectedFile = fileInTree;
+    }
+    
+    private static File? FindFileById(FolderDto folder, string name)
+    {
+        var file = folder.Files.FirstOrDefault(f => f.Name == name);
+        if (file is not null)
+            return file;
+
+        foreach (var subFolder in folder.Folders)
+        {
+            var found = FindFileById(subFolder, name);
+            if (found is not null)
+                return found;
+        }
+
+        return null;
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+            await _module.DisposeAsync();
     }
 }

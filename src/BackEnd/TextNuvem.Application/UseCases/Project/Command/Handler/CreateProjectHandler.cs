@@ -25,7 +25,7 @@ internal sealed class CreateProjectHandler : IRequestHandler<CreateProjectReques
         if (customer is null)
             return new Error("Customer not found!");
 
-        var newProject = new Domain.BackOffice.Entities.Project(request.Name, customer, customer.Id);
+        var newProject = new Domain.BackOffice.Entities.Project(request.Name, customer);
 
         var resultAddInCustomer = customer.AddProject(newProject);
         if (!resultAddInCustomer.IsSuccess)

@@ -23,69 +23,72 @@
     }
     else
     {
-            
-            <div class="content container-fluid mt-4">
+        <div class="content container-fluid mt-4">
 
-                <!-- WELCOME -->
-                <div class="mb-4">
-                    <h1>Welcome back, @_dashBoard.Name!</h1>
-                    <p class="text-muted">Continue trabalhando nos seus projetos.</p>
-                </div>
+            <div class="mb-4 text-center">
+                <h1 class="text-center" >Welcome back, @_dashBoard.Name!</h1>
+                <p class="text-muted text-center">Continue trabalhando nos seus projetos.</p>
+            </div>
 
-                <!-- CARDS -->
-                <div class="row mb-4">
-                    <div class="col-md-6 mb-2">
-                        <div class="card gradient-blue d-flex justify-content-center align-items-center cursor-pointer">
-                            <h5>Continue Projeto</h5>
-                            <p>Última edição recente</p>
-                        </div>
+            <!-- CARDS -->
+            <div class="row mb-4">
+                <a class="col-md-6 mb-2 text-decoration-none">
+                    <div class="card gradient-blue d-flex justify-content-center align-items-center cursor-pointer">
+                        <h5>Continue Projeto</h5>
+                        <p>Última edição recente</p>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card gradient-purple d-flex justify-content-center align-items-center cursor-pointer">
-                            <h5>Novo Projeto</h5>
-                            <p>Criar algo novo</p>
-                        </div>
+                </a>
+                <a class="col-md-6 text-decoration-none">
+                    <div class="card gradient-purple d-flex justify-content-center align-items-center cursor-pointer">
+                        <h5>Novo Projeto</h5>
+                        <p>Criar algo novo</p>
                     </div>
-                </div>
+                </a>
+            </div>
 
-                <!-- LISTA -->
-                <div class="card shadow-sm border-0 p-3">
-                    <h5 class="mb-3">Projetos Recentes</h5>
+            <!-- LISTA -->
+            <div class="card shadow-sm border-0 p-3">
+                <h5 class="mb-3">Projetos Recentes</h5>
 
-                    @foreach (var project in _dashBoard.Projects)
-                    {
-                        <div class="project-item d-flex justify-content-around align-items-center">
-                            <div>
-                                <p class="text-black text-project">@project.Name</p><br />
-                                <small class="text-muted">
-                                    @project.LastUpdate.ToString("dd/MM/yyyy")
-                                </small>
+                @foreach (var project in _dashBoard.Projects)
+                {
+                    <div class="project-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="d-flex align-items-center">
+                                <p class="text-black text-project mb-0">@project.Name</p>
+
+                                <i class="bi @(project.Favorite ? "bi-star-fill text-warning" : "bi-star text-muted") ms-2"></i>
                             </div>
 
-                            <button class="btn btn-primary btn-sm px-5">Abrir</button>
+                            <small class="text-muted">
+                                @project.LastUpdate.ToString("dd/MM/yyyy")
+                            </small>
                         </div>
-                    }
-                </div>
+
+                        <a class="btn btn-primary btn-sm px-5 text-decoration-none" href="/Editor/@project.Id" >Abrir</a>
+                    </div>
+                }
             </div>
+        </div>
     }
 </div>
 
 @code{
     private string _error = string.Empty;
     private CustomerDashBoard? _dashBoard;
-    
+
     protected override async Task OnInitializedAsync()
     {
         if (!(await ServiceAuth.CustomerIsAuthentication()))
         {
             Nav.NavigateTo("/Customer/Login");
             return;
-        } 
+        }
 
-        var id =await LocalStorage.GetCustomerId();
-        
+        var id = await LocalStorage.GetCustomerId();
+
         var client = Factory.CreateClient("Api");
-        
+
         var response = await client.GetAsync($"/Customer/DashBoard?CustomerId={id}");
 
         if (!response.IsSuccessStatusCode)
@@ -96,6 +99,7 @@
         }
 
         _dashBoard = await response.Content.ReadFromJsonAsync<CustomerDashBoard>();
+        _dashBoard?.Projects.OrderBy(x => x.Favorite).ThenBy(x => x.LastUpdate);
     }
 
 }

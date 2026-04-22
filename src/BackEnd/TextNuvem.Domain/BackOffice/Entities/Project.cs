@@ -8,12 +8,12 @@ public sealed class Project :Entity
     {
         
     }
-    public Project(string name, Customer customer, Guid customerId)
+    public Project(string name, Customer customer)
     {
         Id = Guid.NewGuid();
         Name = name;
         Customer = customer;
-        CustomerId = customerId;
+        CustomerId = customer.Id;
     }
 
     public DateTime LastUpdate { get; private set; } = DateTime.UtcNow;
