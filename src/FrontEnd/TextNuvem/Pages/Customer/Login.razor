@@ -8,26 +8,52 @@
 @inject LocalStorageService serviceStorage
 
 
-<h3>Login</h3>
+<div class="login-page">
+    <div class="login-card">
 
-<EditForm Model="_customer" OnValidSubmit="Handle" FormName="handle">
-    <DataAnnotationsValidator/>
-    <ValidationSummary/>
-    
-    <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <InputText id="email" type="email" class="form-control" @bind-Value="_customer.Email"></InputText>
+        <div class="login-header">
+            <h3>Welcome Back</h3>
+            <p>Entre na sua conta</p>
+        </div>
+
+        <EditForm Model="_customer" OnValidSubmit="Handle" FormName="handle">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-4">
+                <label for="email" class="form-label">Email</label>
+
+                <InputText
+                    id="email"
+                    type="email"
+                    class="form-control custom-input"
+                    @bind-Value="_customer.Email" />
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label">Password</label>
+
+                <InputText
+                    id="password"
+                    type="password"
+                    class="form-control custom-input"
+                    @bind-Value="_customer.Password" />
+            </div>
+
+            <button type="submit" class="btn login-btn w-100">
+                Login
+            </button>
+
+        </EditForm>
+
+        <div class="register-link">
+            Não tem conta?
+            <a href="/Customer/Register">Registrar</a>
+        </div>
+
     </div>
+</div>
 
-    <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <InputText id="password"  type="password" class="form-control" @bind-Value="_customer.Password"></InputText>
-    </div>
-    <button type="submit" class="btn btn-success">Login</button>
-    
-</EditForm>
-
-<a href="/Customer/Register" class="link-offset-1-hover link-secondary">Register</a>
 @code 
 {
     private CustomerLoginDto _customer { get; set; } = new();

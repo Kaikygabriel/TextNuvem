@@ -57,7 +57,7 @@
                             <div class="d-flex align-items-center">
                                 <p class="text-black text-project mb-0">@project.Name</p>
 
-                                <i class="bi @(project.Favorite ? "bi-star-fill text-warning" : "bi-star text-muted") ms-2"></i>
+                                <i class="bi cursor-pointer  @(project.Favorite ? "bi-star-fill text-warning" : "bi-star text-muted") ms-2"></i>
                             </div>
 
                             <small class="text-muted">
@@ -99,7 +99,7 @@
         }
 
         _dashBoard = await response.Content.ReadFromJsonAsync<CustomerDashBoard>();
-        _dashBoard?.Projects.OrderBy(x => x.Favorite).ThenBy(x => x.LastUpdate);
+        _dashBoard?.Projects.OrderBy(x => x.Favorite);
     }
 
 }

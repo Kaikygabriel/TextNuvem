@@ -11,8 +11,17 @@
 
 <div class="editor-container">
     <aside class="sidebar">
-        <div class="sidebar-header">
-            <h6>Arquivos</h6>
+        <div class="sidebar-header d-flex align-items-center justify-content-sm-around flex-row">
+            
+            <a class="btn btn-sm btn-primary" href="/">
+                Previous
+            </a>
+            
+            <h6>Files</h6>
+            <button class="btn btn-sm btn-primary" @onclick="Save">
+                Save
+            </button>
+
         </div>
 
         <div class="sidebar-content">
@@ -21,6 +30,7 @@
                 @RenderFolder(_root)
             }
         </div>
+        
     </aside>
 
     <main class="editor">
@@ -30,8 +40,8 @@
                 <div class="empty-icon">
                     <i class="bi bi-file-earmark-text"></i>
                 </div>
-                <h4>Selecione um arquivo</h4>
-                <p>Escolha um arquivo na esquerda para editar</p>
+                <h4>Select a file</h4>
+                <p>Choose a file on the left to edit.</p>
             </div>
         }
         else
@@ -44,9 +54,7 @@
 
                 <div style="display:flex; align-items:center; gap:12px;">
                     <small class="file-path">@_selectedFile.Name</small>
-                    <button class="btn btn-sm btn-primary" @onclick="SaveCurrentFile">
-                        Salvar
-                    </button>
+                    
                 </div>
             </div>
 
@@ -65,16 +73,36 @@
     private IJSObjectReference? _module;
     private bool _editorReady;
     private bool _pendingEditorInit;
-
+    private string _errorMessage;
+    
+    private async Task Save()
+    {
+        Console.WriteLine("Chamou");
+        var client = new RestClient();
+        var request = new RestRequest("https://localhost:7249/Project/Update/Files",Method.Put)
+            .AddJsonBody(
+                new {
+                projectId = id,
+                compressFolders = service.CompressObject(new List<FolderDto>{_root})
+            });
+        var response = await client.ExecuteAsync(request);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Caiu aqui");
+            _errorMessage = response.Content;
+            return;
+        }
+        
+    }
+    
     protected override async Task OnInitializedAsync()
     {
         var client = new RestClient();
         var request = new RestRequest($"https://localhost:7249/Project?ProjectId={id}");
         var response = await client.GetAsync<GetProjectDto>(request);
         if (response is null)
-        {
             Nav.NavigateTo("/");
-        }
 
         _root = service.DecompressObject<IEnumerable<FolderDto>>(response?.ContentFolders).FirstOrDefault();
     }
@@ -104,7 +132,7 @@
             _pendingEditorInit = false;
         }
     }
-
+    
     private static string GetLanguage(string fileName)
     {
         if (fileName.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
