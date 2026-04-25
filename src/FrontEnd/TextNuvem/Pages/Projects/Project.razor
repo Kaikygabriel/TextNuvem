@@ -12,7 +12,6 @@
 <div class="editor-container">
     <aside class="sidebar">
         <div class="sidebar-header d-flex align-items-center justify-content-sm-around flex-row">
-            
             <a class="btn btn-sm btn-primary" href="/">
                 Previous
             </a>
@@ -21,7 +20,6 @@
             <button class="btn btn-sm btn-primary" @onclick="Save">
                 Save
             </button>
-
         </div>
 
         <div class="sidebar-content">
@@ -113,7 +111,6 @@
             </div>
 
         </div>
-
     </div>
 }
 
@@ -264,7 +261,7 @@
                 "createEditor",
                 "monaco-editor",
                 _selectedContent,
-                GetLanguage(_selectedFile.Name)
+                ExtensionsService.GetLanguage(_selectedFile.Name)
             );
 
             _editorReady = true;
@@ -272,32 +269,7 @@
         }
     }
     
-    private static string GetLanguage(string fileName)
-    {
-        if (fileName.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
-            return "csharp";
-
-        if (fileName.EndsWith(".js", StringComparison.OrdinalIgnoreCase))
-            return "javascript";
-
-        if (fileName.EndsWith(".ts", StringComparison.OrdinalIgnoreCase))
-            return "typescript";
-
-        if (fileName.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
-            return "html";
-
-        if (fileName.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
-            return "css";
-
-        if (fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-            return "json";
-
-        if (fileName.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
-            return "markdown";
-
-        return "plaintext";
-    }
-
+ 
     RenderFragment RenderFolder(FolderDto folder) => @<div class="folder">
         <div class="folder-name"
              @oncontextmenu="(e) => OpenContextMenu(e, folder)"
@@ -339,7 +311,7 @@
         if (_editorReady && _module is not null)
         {
             await _module.InvokeVoidAsync("setEditorValue", _selectedContent);
-            await _module.InvokeVoidAsync("setLanguage", GetLanguage(file.Name));
+            await _module.InvokeVoidAsync("setLanguage", ExtensionsService.GetLanguage(file.Name));
         }
         else
         {
@@ -379,11 +351,5 @@
         }
 
         return null;
-    }
-    
-    public async ValueTask DisposeAsync()
-    {
-        if (_module is not null)
-            await _module.DisposeAsync();
     }
 }

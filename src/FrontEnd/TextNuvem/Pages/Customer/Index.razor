@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using RestSharp
 @using TextNuvem.Dtos.Customers
 @using TextNuvem.Service
 @inject AuthService ServiceAuth
@@ -57,7 +58,15 @@
                             <div class="d-flex align-items-center">
                                 <p class="text-black text-project mb-0">@project.Name</p>
 
-                                <i class="bi cursor-pointer  @(project.Favorite ? "bi-star-fill text-warning" : "bi-star text-muted") ms-2"></i>
+                                @if (project.Favorite)
+                                {
+                                    <i class="bi cursor-pointer bi-star-fill text-warning ms-2"  @onclick="(e) => RemoveFavorite(project.Id)" ></i>
+                                }
+                                else
+                                {
+                                    <i class="bi cursor-pointer bi-star text-mutedms-2" @onclick="(e) => ToFavorite(project.Id)"></i>
+                                }
+                                
                             </div>
 
                             <small class="text-muted">
@@ -102,4 +111,23 @@
         _dashBoard?.Projects.OrderBy(x => x.Favorite);
     }
 
+    private async Task ToFavorite(Guid id)
+    {
+        var client = new RestClient();
+        var request = new RestRequest("https://localhost:7249/Project/SetFavorite")
+            .AddJsonBody(new {projectId = id});
+        var response = await client.PostAsync(request);
+        
+        _dashBoard?.Projects.First(x => x.Id == id).Favorite = true;
+    }
+
+    private async Task RemoveFavorite(Guid id)
+    {
+        var client = new RestClient();
+        var request = new RestRequest("https://localhost:7249/Project/RemoveFavorite")
+            .AddJsonBody(new {projectId = id});
+        var response = await client.PostAsync(request);
+        
+        _dashBoard?.Projects.First(x => x.Id == id).Favorite = false;
+    }
 }

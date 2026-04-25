@@ -12,6 +12,10 @@
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="TextNuvem.styles.css" rel="stylesheet" />
+    
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#04173D">
+    
     <script type="importmap"></script>
 </head>
 
@@ -39,7 +43,9 @@
         });
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
-    
+    <script>
+        navigator.serviceWorker.register('service-worker.js');
+    </script>
 
 </body>
 
