@@ -251,3 +251,151 @@
         min-height: 65vh;
     }
 }
+
+/*BOTÂO CREATE NEW FILE */
+
+
+
+.modal-create-file{
+    position: fixed;
+    top: 38%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    width: 360px;
+    padding: 18px;
+
+    background: linear-gradient(145deg, #2a2a2f, #1f1f24);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+
+    box-shadow:
+            0 25px 60px rgba(0,0,0,0.65),
+            inset 0 1px 0 rgba(255,255,255,0.04);
+
+    color: #fff;
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    justify-content: center;
+    align-items: center;
+    
+    font-family: Segoe UI, sans-serif;
+}
+
+/* HEADER */
+.modal-create-file{
+    background: #2b2d30;
+    border: 1px solid #45484f;
+    padding: 18px;
+    width: 350px;
+}
+
+.modal-header h2{
+    font-size: 19px;
+    font-weight: 500;
+}
+
+/* INPUT estilo IDE */
+/* estilo JetBrains / Rider-like */
+.input-field{
+    width: 40vw;
+
+    padding: 8px 10px;
+
+    background: transparent; /* transparente */
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px; /* menos arredondado que 10px */
+
+    color: #ddd;
+    font-size: 14px;
+
+    outline: none;
+    box-shadow: none;
+
+    transition: border-color .15s ease,
+    background .15s ease;
+}
+
+.input-field::placeholder{
+    color: #6f7685;
+}
+
+.input-field:hover{
+    border-color: rgba(255,255,255,0.2);
+}
+
+.input-field:focus{
+    background: rgba(255,255,255,0.02); /* quase invisível */
+    border-color: #4d7dff; /* azul estilo Rider */
+    box-shadow: 0 0 0 1px #4d7dff;
+}
+
+/* BOTÕES */
+.actions{
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.btn-cancel{
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #ccc;
+    padding: 7px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.btn-cancel:hover{
+    border-color: rgba(255,255,255,0.25);
+}
+
+.btn-create{
+    background: linear-gradient(135deg, #a100ff, #3d8bff);
+    border: none;
+    color: white;
+
+    padding: 7px 14px;
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    box-shadow: 0 10px 25px rgba(80, 90, 255, 0.25);
+}
+
+.btn-create:hover{
+    filter: brightness(1.1);
+}
+
+/*Menu Lateral Click Direito*/
+
+.context-menu{
+    position: fixed;
+    min-width:180px;
+
+    background:#2b2d30;
+    border:1px solid #45484f;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.45);
+    z-index:9999;
+}
+
+.menu-item{
+    padding:8px 14px;
+    color:#ddd;
+    cursor:pointer;
+    font-size:14px;
+}
+
+.menu-item:hover{
+    background:#365880; /* estilo Rider */
+}
+
+.context-backdrop{
+    position:fixed;
+    inset:0;
+    z-index:9998;
+}

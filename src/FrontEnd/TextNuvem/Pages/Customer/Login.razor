@@ -1,16 +1,11 @@
 @page "/Customer/Login"
-@using System.Text
-@using System.Text.Json
 @using TextNuvem.Dtos.Customers
 @using TextNuvem.Service
-@inject IHttpClientFactory Factory
 @inject NavigationManager Nav
-@inject LocalStorageService serviceStorage
-
+@inject AuthService Service;
 
 <div class="login-page">
     <div class="login-card">
-
         <div class="login-header">
             <h3>Welcome Back</h3>
             <p>Entre na sua conta</p>
@@ -45,12 +40,10 @@
             </button>
 
         </EditForm>
-
         <div class="register-link">
             Não tem conta?
             <a href="/Customer/Register">Registrar</a>
         </div>
-
     </div>
 </div>
 
@@ -60,34 +53,12 @@
     
     public async Task Handle()
     {
-        var client = Factory.CreateClient("Api");
-
-        var jsonRequest = JsonSerializer.Serialize(_customer);
-        var content = new StringContent(
-            jsonRequest,
-            Encoding.UTF8,
-            "application/json");
-        
-        var response = await client.PostAsync("/Customer/Login",content);
-
-        if (!response.IsSuccessStatusCode)
+        var resultAuth = await Service.Login(_customer);
+        if (!resultAuth.IsSuccess)
         {
-            var error = await response.Content.ReadAsStringAsync();
-            Nav.NavigateTo("/");
+            Nav.NavigateTo("/Customer/Login");
             return;
         }
-        
-        var raw = await response.Content.ReadAsStringAsync();
-        var responseBody = await response.Content.ReadAsStreamAsync();
-        
-        var options = new JsonSerializerOptions 
-        { 
-            PropertyNameCaseInsensitive = true 
-        };
-        var json = JsonSerializer.Deserialize<AuthCustomerResponse>(responseBody,options);
-
-        await serviceStorage.AddAuthCustomerInStorage(json);
-        
         Nav.NavigateTo("/");
     }
 }

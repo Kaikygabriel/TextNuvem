@@ -32,7 +32,6 @@
         </div>
         
     </aside>
-
     <main class="editor">
         @if (_selectedFile is null)
         {
@@ -63,6 +62,61 @@
     </main>
 </div>
 
+@if (_createNewFileActive)
+{
+    <div class="modal-create-file">
+    
+        <div class="modal-header text-center mb-2">
+            <h2 style="color: white">Create New File</h2>
+        </div>
+
+        <EditForm Model="_nameNewFile" OnValidSubmit="Criar">
+        
+            <DataAnnotationsValidator/>
+            <ValidationSummary/>
+            
+            <InputText class="input-field"
+                       placeholder="File name..."
+                       @bind-Value="_nameNewFile.Name" />
+
+            <div class="actions d-flex justify-content-center align-items-center mt-2">
+                <button type="button" class="btn-cancel" @onclick="CancelAreaCreate">
+                    Cancel
+                </button>
+
+                <button type="submit" class="btn-create">
+                    Create
+                </button>
+            </div>
+
+        </EditForm>
+    </div>  
+}
+
+@if (_showContextMenu)
+{
+    <div class="context-backdrop"
+         @onclick="CloseContextMenu">
+
+        <div class="context-menu"
+             @onclick:stopPropagation="true"
+             style="top:@($"{_clientY}px"); left:@($"{_clientX}px");">
+
+            <div class="menu-item"
+                 @onclick="CreateNewFile">
+                New File
+            </div>
+
+            <div class="menu-item"
+                 @onclick="CreateFolder">
+                New Folder
+            </div>
+
+        </div>
+
+    </div>
+}
+
 @code {
     [Parameter] 
     public Guid id { get; set; }
@@ -74,6 +128,91 @@
     private bool _editorReady;
     private bool _pendingEditorInit;
     private string _errorMessage;
+
+    private bool _createNewFileActive;
+    private FolderDto? _currentFolderCreateFile;
+    private NameFileDto _nameNewFile = new();
+
+    private bool _showContextMenu;
+    private double _clientX;
+    private double _clientY;
+    
+    private void Criar()
+    {
+        if(_currentFolderCreateFile is null)
+        {
+            _currentFolderCreateFile = null;
+            _nameNewFile = new();
+            _createNewFileActive = false;
+            return;
+        }
+        
+        _currentFolderCreateFile.Files.Add(
+            new File(
+                _nameNewFile.Name,
+                "",
+                _currentFolderCreateFile.Id
+            )
+        );
+
+        _currentFolderCreateFile = null;
+        _nameNewFile = new();
+        _createNewFileActive = false;
+    }
+    private void GetAreaCreate(string file)
+    {
+        _createNewFileActive = true;
+        _currentFolderCreateFile = FindParentFolder(_root,file);
+    }
+    private void CancelAreaCreate()
+    {
+        _currentFolderCreateFile = null;
+        _nameNewFile = new();
+        _createNewFileActive = false;
+    }
+
+    private FolderDto? FindParentFolder(FolderDto folder, string fileName)
+    {
+        if(folder.Files.Any(f=>f.Name == fileName))
+            return folder;
+
+        foreach(var sub in folder.Folders)
+        {
+            var found = FindParentFolder(sub,fileName);
+
+            if(found is not null)
+                return found;
+        }
+
+        return null;
+    }
+    private void OpenContextMenu(MouseEventArgs e, FolderDto folder)
+    {
+        _currentFolderCreateFile = folder;
+
+        _clientX = e.ClientX;
+        _clientY = e.ClientY;
+
+        _showContextMenu = true;
+    }
+
+    private  void CloseContextMenu()
+    {
+        _showContextMenu = false;
+    }
+
+    void CreateNewFile()
+    {
+        _showContextMenu = false;
+
+        _createNewFileActive = true;
+    }
+
+    void CreateFolder()
+    {
+        _showContextMenu = false;
+        // lógica criar pasta
+    }
     
     private async Task Save()
     {
@@ -89,9 +228,7 @@
         
         if (!response.IsSuccessStatusCode)
         {
-            Console.WriteLine("Caiu aqui");
-            _errorMessage = response.Content;
-            return;
+            _errorMessage = response.ErrorMessage!;
         }
         
     }
@@ -105,6 +242,8 @@
             Nav.NavigateTo("/");
 
         _root = service.DecompressObject<IEnumerable<FolderDto>>(response?.ContentFolders).FirstOrDefault();
+        if (_root is null)
+            _root = new FolderDto(){Path = "src"};
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -160,7 +299,12 @@
     }
 
     RenderFragment RenderFolder(FolderDto folder) => @<div class="folder">
-        <div class="folder-name">
+        <div class="folder-name"
+             @oncontextmenu="(e) => OpenContextMenu(e, folder)"
+             @oncontextmenu:preventDefault="true"
+             @ontouchend:preventDefault="true"
+             @ontouchmove:preventDefault="true"
+        >
             <i class="bi bi-folder2"></i>
             <span>@folder.Path</span>
         </div>
@@ -168,7 +312,9 @@
         @foreach (var file in folder.Files)
         {
             <div class="file @( _selectedFile?.Name == file.Name ? "active" : "" )"
-                 @onclick="() => SelectFile(file)">
+                 @onclick="() => SelectFile(file)"
+              
+                 >
                 <i class="bi bi-file-earmark"></i>
                 <span>@file.Name</span>
             </div>

@@ -4,7 +4,7 @@ using TextNuvem.Dtos.Customers;
 
 namespace TextNuvem.Service;
 
-public sealed class LocalStorageService
+internal sealed class LocalStorageService
 {
      private readonly IJSRuntime _js;
 
