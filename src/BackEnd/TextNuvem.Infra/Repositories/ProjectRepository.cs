@@ -39,6 +39,7 @@ internal sealed class ProjectRepository : IProjectRepository
 
     public void Update(Project project)
     {
+       _appDbContext.Entry(project).Property(x => x.Folders).IsModified = true;
         _appDbContext.Projects.Update(project);
     }
 
