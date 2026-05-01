@@ -113,7 +113,23 @@
         </div>
     </div>
 }
+@if (_showRemoveFile)
+{
+    <div class="context-backdrop"
+         @onclick="CancelRemoveFile">
 
+        <div class="context-menu"
+             @onclick:stopPropagation="true"
+             style="top:@($"{_clientY}px"); left:@($"{_clientX}px");">
+
+            <div class="menu-item"
+                 @onclick="ActiveRemove">
+                Remove
+            </div>
+
+        </div>
+    </div>
+}
 @code {
     [Parameter] 
     public Guid id { get; set; }
@@ -134,6 +150,45 @@
     private double _clientX;
     private double _clientY;
     
+	private bool _showRemoveFile;
+	private string _NameFileRemove;
+
+    private void ActiveRemove()
+        => RemoveFile(_root);
+    private void RemoveFile(FolderDto project)
+    {
+        var fileInProject = project.Files.FirstOrDefault(x => x.Name == _NameFileRemove);
+        if(fileInProject is not null )
+            project.Files.Remove(fileInProject);
+        else
+            foreach(var sub in project.Folders)
+            {
+                var file = sub.Files.FirstOrDefault(x => x.Name == _NameFileRemove);
+                
+                if (file is not null)
+                {
+                    sub.Files.Remove(file);
+                }
+                else
+                {
+                    foreach(var folderInSub in sub.Folders)
+                        RemoveFile(folderInSub);
+                }
+            }
+        CancelRemoveFile();
+    }
+	private void ShowRemoveFile(MouseEventArgs e,string fileName)
+	{
+		_showRemoveFile = true;
+        _NameFileRemove = fileName;
+        _clientX = e.ClientX;
+        _clientY = e.ClientY;
+	}
+    private void CancelRemoveFile()
+    {
+        _showRemoveFile = false;
+        _NameFileRemove = "";
+    }
     private void Criar()
     {
         if(_currentFolderCreateFile is null)
@@ -286,7 +341,11 @@
         {
             <div class="file @( _selectedFile?.Name == file.Name ? "active" : "" )"
                  @onclick="() => SelectFile(file)"
-              
+                 @oncontextmenu="(e) => ShowRemoveFile(e, file.Name)"
+                 @oncontextmenu:preventDefault="true"
+                 @ontouchend:preventDefault="true"
+                 @ontouchmove:preventDefault="true"
+                 
                  >
                 <i class="bi bi-file-earmark"></i>
                 <span>@file.Name</span>
