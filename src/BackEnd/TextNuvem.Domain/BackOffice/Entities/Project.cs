@@ -30,10 +30,6 @@ public sealed class Project :Entity
     
     public void UpdateFolders(List<Folder>folders)
     {
-        Console.WriteLine($"\n\n\t{folders.Any()}\n\n\t\t");
-        foreach(var f in folders)
-            Console.WriteLine($"\t{f}\t");
-        
         if (Folders is null ||!Folders.Any())
         {
             Folders = folders;

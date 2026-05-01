@@ -9,5 +9,11 @@ public record RefreshToken(string Token)
     public DateTime? Expired { get; private init; } = DateTime.UtcNow.AddHours(16);
 
     public Result VerifyRefreshToken(string token)
-        =>Token.Equals(token) ? Result.Success() : new Error("Token is invalid !");
+    {
+        if (Expired < DateTime.UtcNow)
+            return new Error("Token is Expired");
+        
+        return Token.Equals(token) ? Result.Success() : new Error("Token is invalid !");
+    }
+        
 }

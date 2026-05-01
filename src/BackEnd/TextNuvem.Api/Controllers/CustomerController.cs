@@ -17,6 +17,13 @@ public class CustomerController : ControllerBase
         _sender = sender;
     }
 
+    [HttpPost("RefreshToken")]
+    public async Task<ActionResult> RefreshToken(LoginByRefreshTokenRequest request)
+    {
+        var result = await _sender.Send(request);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+    }
+    
     [HttpPost("Register")]
     public async Task<ActionResult> Register(RegisterCustomerRequest request)
     {
