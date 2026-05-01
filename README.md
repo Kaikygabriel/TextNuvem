@@ -25,6 +25,7 @@ Novas funcionalidades estão sendo implementadas continuamente e a estrutura da 
 
 * ASP.NET Core
 * C#
+* Blazor Wasm
 
 ### Frontend
 
