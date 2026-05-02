@@ -1,0 +1,66 @@
+@page "/Create"
+@using RestSharp
+@using TextNuvem.Dtos.Projects
+@using TextNuvem.Service
+@inject AuthService AuthService
+@inject LocalStorageService LocalStorage
+@inject  NavigationManager Nav
+<h3 class="text-center h3" >Create</h3>
+
+<div class="login-page">
+    <div class="login-card">
+
+        <div class="login-header">
+            <h3>New Project</h3>
+            <p>Crie um novo projeto</p>
+        </div>
+
+        <EditForm Model="_createProjectDto" OnValidSubmit="Handle" FormName="CreateNewProject">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-4">
+                <label for="name" class="form-label">Project Name</label>
+
+                <InputText
+                    id="name"
+                    class="form-control custom-input"
+                    @bind-Value="_createProjectDto.name" />
+            </div>
+
+            <button class="btn login-btn w-100" type="submit">
+                Create Project
+            </button>
+        </EditForm>
+
+    </div>
+</div>
+
+@code {
+    private CreateProjectDto _createProjectDto { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var customerId = await LocalStorage.GetCustomerId();
+        if(string.IsNullOrEmpty(customerId))
+            Nav.NavigateTo("/");
+        Console.WriteLine(customerId);
+        _createProjectDto.customerId = Guid.Parse(customerId);
+    }
+
+    private async Task Handle()
+    {
+        var token =await AuthService.GetToken();
+        if(token is null)
+            Nav.NavigateTo("/");
+        
+        var client = new RestClient();
+        var request = new RestRequest("https://localhost:7249/Project/Create")
+            .AddJsonBody(_createProjectDto)
+            .AddHeader("Authorization",$"Bearer {token}");
+        
+        var response = await client.PostAsync(request);
+         
+        Nav.NavigateTo("/");
+    }
+}

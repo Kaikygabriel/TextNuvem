@@ -38,11 +38,12 @@ public class CustomerController : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
     
+    [Authorize]
     [HttpGet("DashBoard")]
     public async Task<ActionResult> DashBoard([FromQuery]GetCustomerDashBoardRequest request)
     {
-        // if (request.CustomerId.ToString() != User.Identity!.Name)
-        //     return Forbid();
+        if (request.CustomerId.ToString() != User.Identity!.Name)
+            return Forbid();
         var result = await _sender.Send(request);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }

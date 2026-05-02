@@ -39,7 +39,7 @@
                         <p>Última edição recente</p>
                     </div>
                 </a>
-                <a class="col-md-6 text-decoration-none">
+                <a class="col-md-6 text-decoration-none" href="\Create">
                     <div class="card gradient-purple d-flex justify-content-center align-items-center cursor-pointer">
                         <h5>Novo Projeto</h5>
                         <p>Criar algo novo</p>
@@ -49,7 +49,7 @@
 
             <!-- LISTA -->
             <div class="card shadow-sm border-0 p-3">
-                <h5 class="mb-3">Projetos Recentes</h5>
+                <h5 class="mb-3 h5">Projetos Recentes</h5>
 
                 @foreach (var project in _dashBoard.Projects)
                 {
@@ -90,12 +90,29 @@
     {
         if (!(await ServiceAuth.CustomerIsAuthentication()))
         {
+            LocalStorage.RemoveAuthCustomerFromStorage();
             Nav.NavigateTo("/Customer/Login");
-            return;
         }
 
-        var id = await LocalStorage.GetCustomerId();
+        var expiredToken =await LocalStorage.GetTokenExpired();
+        if ( expiredToken is null || expiredToken < DateTime.UtcNow)
+        {
+            var expiredRefreshToken =   await LocalStorage.GetRefreshTokenExpired();
+            if ( expiredRefreshToken is null || expiredRefreshToken < DateTime.UtcNow)
+            {
+                LocalStorage.RemoveAuthCustomerFromStorage();
+                Nav.NavigateTo("/Customer/Login");
+            }
 
+            var result = await TryAuthenticationUserRefreshToken();
+            if (!result)
+            {
+                LocalStorage.RemoveAuthCustomerFromStorage();
+                Nav.NavigateTo("/Customer/Login");
+            }
+        }
+        
+        var id = await LocalStorage.GetCustomerId();
         var client = Factory.CreateClient("Api");
 
         var response = await client.GetAsync($"/Customer/DashBoard?CustomerId={id}");
@@ -111,11 +128,28 @@
         _dashBoard?.Projects.OrderBy(x => x.Favorite);
     }
 
+    private async Task<bool> TryAuthenticationUserRefreshToken()
+    {
+        var result = await ServiceAuth.LoginRefreshToken();
+        if (!result.IsSuccess)
+            return false;
+
+        return true;
+    }
     private async Task ToFavorite(Guid id)
     {
+        var token =await ServiceAuth.GetToken();
+        if(token is null)
+        {
+            LocalStorage.RemoveAuthCustomerFromStorage();
+            Nav.NavigateTo("/Customer/Login");
+        }
+        
         var client = new RestClient();
         var request = new RestRequest("https://localhost:7249/Project/SetFavorite")
-            .AddJsonBody(new {projectId = id});
+            .AddJsonBody(new {projectId = id})
+            .AddHeader("Authorization",$"Bearer {token}");
+        
         var response = await client.PostAsync(request);
         
         _dashBoard?.Projects.First(x => x.Id == id).Favorite = true;
@@ -123,9 +157,18 @@
 
     private async Task RemoveFavorite(Guid id)
     {
+        var token =await ServiceAuth.GetToken();
+        if(token is null)
+        {
+            LocalStorage.RemoveAuthCustomerFromStorage();
+            Nav.NavigateTo("/Customer/Login");
+        }
+        
         var client = new RestClient();
         var request = new RestRequest("https://localhost:7249/Project/RemoveFavorite")
-            .AddJsonBody(new {projectId = id});
+            .AddJsonBody(new {projectId = id})
+            .AddHeader("Authorization",$"Bearer {token}");
+        
         var response = await client.PostAsync(request);
         
         _dashBoard?.Projects.First(x => x.Id == id).Favorite = false;

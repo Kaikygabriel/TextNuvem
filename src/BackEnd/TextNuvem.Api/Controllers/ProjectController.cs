@@ -12,7 +12,7 @@ using File = TextNuvem.Domain.BackOffice.Entities.File;
 namespace TextNuvem.Api.Controllers;
 
 [ApiController]
-//[Authorize]
+[Authorize]
 [Route("[controller]")]
 public class ProjectController : ControllerBase
 {

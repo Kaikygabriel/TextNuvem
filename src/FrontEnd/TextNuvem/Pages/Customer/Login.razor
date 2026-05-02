@@ -50,9 +50,16 @@
 @code 
 {
     private CustomerLoginDto _customer { get; set; } = new();
-    
+    protected override async Task OnInitializedAsync()
+    {
+        if(await Service.CustomerIsAuthentication())
+            Nav.NavigateTo("/");
+    }
     public async Task Handle()
     {
+        if(await Service.CustomerIsAuthentication())
+            Nav.NavigateTo("/");
+        
         var resultAuth = await Service.Login(_customer);
         if (!resultAuth.IsSuccess)
         {

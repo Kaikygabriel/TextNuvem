@@ -39,7 +39,7 @@ internal sealed class LoginByRefreshTokenHandler  : IRequestHandler<LoginByRefre
         customer.SetRefreshToken(refreshToken);
         
         _customerRepository.Update(customer);
-        await _unitOfWork.CommitAsync();
+        await _unitOfWork.CommitAsync(); 
         
         var response = new AuthCustomerResponse(token, refreshToken.Token, customer.Id);
         return response;

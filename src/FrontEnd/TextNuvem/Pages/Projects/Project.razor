@@ -8,7 +8,8 @@
 @inject IJSRuntime JS
 @inject CompactorService service;
 @inject NavigationManager Nav
-
+@inject LocalStorageService LocalStorage
+@inject AuthService AuthService
 <div class="editor-container">
     <aside class="sidebar">
         <div class="sidebar-header d-flex align-items-center justify-content-sm-around flex-row">
@@ -270,13 +271,22 @@
     {
         await SaveCurrentFile(); 
 
+        var token =await AuthService.GetToken();
+        if(token is null)
+        {
+            LocalStorage.RemoveAuthCustomerFromStorage();
+            Nav.NavigateTo("/Customer/Login");
+        }
+        
         var client = new RestClient();
         var request = new RestRequest("https://localhost:7249/Project/Update/Files",Method.Put)
             .AddJsonBody(
                 new {
                 projectId = id,
                 compressFolders = service.CompressObject(new List<FolderDto>{_root})
-            });
+            })
+        .AddHeader("Authorization",$"Bearer {token}");
+    
         var response = await client.ExecuteAsync(request);
         
         if (!response.IsSuccessStatusCode)
@@ -288,13 +298,26 @@
     
     protected override async Task OnInitializedAsync()
     {
+        var token =await AuthService.GetToken();
+        if(token is null)
+        {
+            LocalStorage.RemoveAuthCustomerFromStorage();
+            Nav.NavigateTo("/Customer/Login");
+        }
+    
         var client = new RestClient();
-        var request = new RestRequest($"https://localhost:7249/Project?ProjectId={id}");
-        var response = await client.GetAsync<GetProjectDto>(request);
-        if (response is null)
-            Nav.NavigateTo("/");
+        var request = new RestRequest($"https://localhost:7249/Project?ProjectId={id}",Method.Get)
+            .AddHeader("Authorization",$"Bearer {token}");
 
-        _root = service.DecompressObject<IEnumerable<FolderDto>>(response?.ContentFolders).FirstOrDefault();
+        var response = await client.ExecuteAsync<GetProjectDto>(request);
+        
+        if(!response.IsSuccessStatusCode)
+            Nav.NavigateTo("/");
+        
+        if (response.Data is null)
+            Nav.NavigateTo("/");
+        
+        _root = service.DecompressObject<IEnumerable<FolderDto>>(response?.Data.ContentFolders).FirstOrDefault();
         if (_root is null)
             _root = new FolderDto(){Path = "src"};
     }

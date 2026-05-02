@@ -15,7 +15,7 @@ builder.Services.AddInfra(builder.Configuration);
 builder.Services.AddDbContext<AppDbContext>(x =>
     x.UseSqlServer(
         connection,x => x.MigrationsAssembly(typeof(Program).Assembly)));
-
+ 
 builder.Services.AddDocumentation();
 builder.Services.AddCorsFromApplication();
 
