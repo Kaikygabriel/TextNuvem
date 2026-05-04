@@ -1,0 +1,93 @@
+@using TextNuvem.Dtos.ValueObjects
+
+<div class="heatmap-wrapper d-flex flex-column align-items-center justify-content-center ">
+    <div class="heatmap-grid">
+        @foreach (var week in Weeks)
+        {
+            <div class="heatmap-week">
+                @foreach (var day in week)
+                {
+                    if (day is null)
+                    {
+                        <div class="heatmap-day empty"></div>
+                    }
+                    else
+                    {
+                        <div class="heatmap-day level-@GetLevel(day.Quantity)"
+                             title="@($"{day.Date:dd/MM/yyyy} • {day.Quantity} alterações")">
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public IReadOnlyCollection<ChangesDateDto> Changes { get; set; } = Array.Empty<ChangesDateDto>();
+
+    [Parameter]
+    public int Days { get; set; } = 365;
+
+    [Parameter]
+    public DateTime? EndDate { get; set; }
+
+    private List<List<HeatCell?>> Weeks { get; set; } = new();
+
+    protected override void OnParametersSet()
+    {
+        BuildCalendar();
+    }
+
+    private void BuildCalendar()
+    {
+        Weeks.Clear();
+
+        var end = (EndDate ?? DateTime.Today).Date;
+        var start = end.AddDays(-(Days - 1));
+
+        while (start.DayOfWeek != DayOfWeek.Sunday)
+            start = start.AddDays(-1);
+
+        while (end.DayOfWeek != DayOfWeek.Saturday)
+            end = end.AddDays(1);
+
+        var quantityByDate = Changes
+            .GroupBy(x => x.Date.Date)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
+
+        for (var weekStart = start; weekStart <= end; weekStart = weekStart.AddDays(7))
+        {
+            var week = new List<HeatCell?>(7);
+
+            for (var i = 0; i < 7; i++)
+            {
+                var currentDay = weekStart.AddDays(i);
+
+                if (currentDay < (EndDate ?? DateTime.Today).Date.AddDays(-(Days - 1)) ||
+                    currentDay > (EndDate ?? DateTime.Today).Date)
+                {
+                    week.Add(null);
+                    continue;
+                }
+
+                quantityByDate.TryGetValue(currentDay.Date, out var quantity);
+                week.Add(new HeatCell(currentDay.Date, quantity));
+            }
+
+            Weeks.Add(week);
+        }
+    }
+
+    private static int GetLevel(int quantity)
+    {
+        if (quantity <= 0) return 0;
+        if (quantity <= 2) return 1;
+        if (quantity <= 5) return 2;
+        if (quantity <= 9) return 3;
+        return 4;
+    }
+
+    private sealed record HeatCell(DateTime Date, int Quantity);
+}1

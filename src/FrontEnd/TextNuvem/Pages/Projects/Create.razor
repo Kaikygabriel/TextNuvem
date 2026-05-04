@@ -50,17 +50,24 @@
 
     private async Task Handle()
     {
-        var token =await AuthService.GetToken();
-        if(token is null)
-            Nav.NavigateTo("/");
-        
-        var client = new RestClient();
-        var request = new RestRequest("https://localhost:7249/Project/Create")
-            .AddJsonBody(_createProjectDto)
-            .AddHeader("Authorization",$"Bearer {token}");
-        
-        var response = await client.PostAsync(request);
-         
-        Nav.NavigateTo("/");
+        try
+        {
+            var token =await AuthService.GetToken();
+            if(token is null)
+                Nav.NavigateTo("/");
+
+            var client = new RestClient();
+            var request = new RestRequest("https://localhost:7249/Project/Create")
+                .AddJsonBody(_createProjectDto)
+                .AddHeader("Authorization",$"Bearer {token}");
+
+            var response = await client.PostAsync(request);
+
+            Nav.NavigateTo("/");    
+        }
+        catch(Exception e)
+        {
+            Nav.NavigateTo("/Create");
+        }
     }
 }

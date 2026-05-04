@@ -1,11 +1,13 @@
 ﻿@page "/"
 @using RestSharp
 @using TextNuvem.Dtos.Customers
+@using TextNuvem.Pages.Customer.Components
 @using TextNuvem.Service
 @inject AuthService ServiceAuth
 @inject NavigationManager Nav
 @inject LocalStorageService LocalStorage
 @inject IHttpClientFactory Factory
+
 <PageTitle>Home</PageTitle>
 
 <div class="dashboard">
@@ -33,7 +35,7 @@
 
             <!-- CARDS -->
             <div class="row mb-4">
-                <a class="col-md-6 mb-2 text-decoration-none">
+                <a class="col-md-6 mb-2 text-decoration-none" @onclick="GetLastUpdateProject" >
                     <div class="card gradient-blue d-flex justify-content-center align-items-center cursor-pointer">
                         <h5>Continue Projeto</h5>
                         <p>Última edição recente</p>
@@ -48,15 +50,15 @@
             </div>
 
             <!-- LISTA -->
-            <div class="card shadow-sm border-0 p-3">
+            <div class="card shadow-sm border-0 p-3 ">
                 <h5 class="mb-3 h5">Projetos Recentes</h5>
 
-                @foreach (var project in _dashBoard.Projects)
+                @foreach (var project in _dashBoard.Projects.OrderByDescending(x=>x.Favorite))
                 {
                     <div class="project-item d-flex justify-content-between align-items-center">
                         <div>
                             <div class="d-flex align-items-center">
-                                <p class="text-black text-project mb-0">@project.Name</p>
+                                <p class="text-black text-project mb-0 cursor-pointer">@project.Name</p>
 
                                 @if (project.Favorite)
                                 {
@@ -79,6 +81,15 @@
                 }
             </div>
         </div>
+        
+        <div class="d-flex flex-column align-items-center justify-content-center vh-80 " style="margin-top: 18px">
+            <h3 class="h3 text-center">
+                @_dashBoard?.ChangesDateDtos?.Sum(x=>x.Quantity) Changes in the last year
+            </h3>
+
+            <ContributionHeapMap Changes="@_dashBoard?.ChangesDateDtos?.ToList()" Days="365" />
+        </div>
+
     }
 </div>
 
@@ -172,5 +183,26 @@
         var response = await client.PostAsync(request);
         
         _dashBoard?.Projects.First(x => x.Id == id).Favorite = false;
+    }
+
+    private async Task GetLastUpdateProject()
+    {
+        var token =await ServiceAuth.GetToken();
+        var customerId = await LocalStorage.GetCustomerId();
+        if(token is null)
+        {
+            LocalStorage.RemoveAuthCustomerFromStorage();
+            Nav.NavigateTo("/Customer/Login");
+        }
+        var client = new RestClient();
+        var request = new RestRequest($"https://localhost:7249/Customer/LastProject?CustomerId={customerId}"
+                ,Method.Post)
+            .AddHeader("Authorization",$"Bearer {token}");
+        
+        Guid? response = await client.GetAsync<Guid?>(request);
+        if(response is null)
+            Nav.NavigateTo("/");
+        
+        Nav.NavigateTo($"/Editor/{response}");
     }
 }

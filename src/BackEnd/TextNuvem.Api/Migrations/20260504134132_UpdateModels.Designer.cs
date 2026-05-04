@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TextNuvem.Infra.Data.Context;
 
@@ -11,9 +12,11 @@ using TextNuvem.Infra.Data.Context;
 namespace TextNuvem.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260504134132_UpdateModels")]
+    partial class UpdateModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,10 +31,6 @@ namespace TextNuvem.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ChangesDate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid?>("LastProjectIdUpdate")
                         .HasColumnType("uniqueidentifier");
 
@@ -43,10 +42,6 @@ namespace TextNuvem.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LastProjectIdUpdate")
-                        .IsUnique()
-                        .HasFilter("[LastProjectIdUpdate] IS NOT NULL");
-
                     b.ToTable("Customer", (string)null);
                 });
 
@@ -57,6 +52,9 @@ namespace TextNuvem.Api.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CustomerId1")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Folders")
@@ -77,16 +75,15 @@ namespace TextNuvem.Api.Migrations
 
                     b.HasIndex("CustomerId");
 
+                    b.HasIndex("CustomerId1")
+                        .IsUnique()
+                        .HasFilter("[CustomerId1] IS NOT NULL");
+
                     b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("TextNuvem.Domain.BackOffice.Entities.Customer", b =>
                 {
-                    b.HasOne("TextNuvem.Domain.BackOffice.Entities.Project", "LastProjectUpdate")
-                        .WithOne()
-                        .HasForeignKey("TextNuvem.Domain.BackOffice.Entities.Customer", "LastProjectIdUpdate")
-                        .HasConstraintName("FK_Customer_LastProjectUpdateId");
-
                     b.OwnsOne("TextNuvem.Domain.BackOffice.ValueObject.Email", "Email", b1 =>
                         {
                             b1.Property<Guid>("CustomerId")
@@ -152,8 +149,6 @@ namespace TextNuvem.Api.Migrations
                     b.Navigation("Email")
                         .IsRequired();
 
-                    b.Navigation("LastProjectUpdate");
-
                     b.Navigation("Password")
                         .IsRequired();
 
@@ -168,11 +163,17 @@ namespace TextNuvem.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TextNuvem.Domain.BackOffice.Entities.Customer", null)
+                        .WithOne("LastProjectUpdate")
+                        .HasForeignKey("TextNuvem.Domain.BackOffice.Entities.Project", "CustomerId1");
+
                     b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("TextNuvem.Domain.BackOffice.Entities.Customer", b =>
                 {
+                    b.Navigation("LastProjectUpdate");
+
                     b.Navigation("Projects");
                 });
 #pragma warning restore 612, 618

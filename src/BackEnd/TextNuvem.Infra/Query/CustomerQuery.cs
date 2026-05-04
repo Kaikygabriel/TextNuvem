@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TextNuvem.Application.Dtos.Customers;
 using TextNuvem.Application.Dtos.Projects;
+using TextNuvem.Application.Dtos.ValueObjects;
 using TextNuvem.Application.Query;
 using TextNuvem.Infra.Data.Context;
 
@@ -28,7 +29,8 @@ internal sealed class CustomerQuery : ICustomerQuery
             customer.Id,
             ProjectDto.ToProjectDtos(customer.Projects),
             customer.Name,
-            customer.Email.Address
+            customer.Email.Address,
+            customer.ChangesDate.Select(x=>new ChangesDateDto(x.Date,x.Quantity))
         );
     }
     

@@ -16,4 +16,8 @@
     <PackageReference Include="RestSharp" Version="114.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Pages\Projects\Components\ContributionHeapMap.razor" />
+  </ItemGroup>
+
 </Project>

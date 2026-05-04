@@ -1,6 +1,8 @@
+ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TextNuvem.Domain.BackOffice.Entities;
+using TextNuvem.Domain.BackOffice.ValueObject;
 
 namespace TextNuvem.Infra.Data.Mapping;
 
@@ -55,5 +57,19 @@ internal sealed class CustomerMap:IEntityTypeConfiguration<Customer>
             .HasForeignKey(x => x.CustomerId)
             .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
+
+        builder.HasOne(x => x.LastProjectUpdate)
+            .WithOne()
+            .HasForeignKey<Customer>(x=>x.LastProjectIdUpdate)
+            .HasConstraintName("FK_Customer_LastProjectUpdateId")
+            .IsRequired(false);
+
+        builder.Property(x => x.ChangesDate)
+            .HasConversion<string>(x =>
+                    JsonSerializer.Serialize(x), x =>
+                    string.IsNullOrWhiteSpace(x)
+                        ? new List<ChangesDate>()
+                        : JsonSerializer.Deserialize<List<ChangesDate>>(x) ?? new()
+            );
     }
 }

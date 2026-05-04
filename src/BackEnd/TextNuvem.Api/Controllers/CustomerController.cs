@@ -47,4 +47,14 @@ public class CustomerController : ControllerBase
         var result = await _sender.Send(request);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
+    
+    [Authorize]
+    [HttpGet("LastProject")]
+    public async Task<ActionResult> LastProject([FromQuery]GetLastProjectUpdateRequest request)
+    {
+        if (request.CustomerId.ToString() != User.Identity!.Name)
+            return Forbid();
+        var result = await _sender.Send(request);
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+    }
 }
