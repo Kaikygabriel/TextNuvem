@@ -1,0 +1,447 @@
+@page "/EditorIA/{id:guid}"
+@layout EditorLayout
+@inject EditorToolbarService Toolbar
+@using RestSharp
+@using TextNuvem.Dtos.Folder
+@using TextNuvem.Dtos
+@using TextNuvem.Dtos.Projects
+@using TextNuvem.Service
+@inject IJSRuntime JS
+@inject CompactorService service
+@inject NavigationManager Nav
+@inject LocalStorageService LocalStorage
+@inject AuthService AuthService
+@implements IDisposable
+
+<div class="editor-container">
+    
+    <aside class="sidebar @(Toolbar.IsExplorerOpen ? "open" : "closed")">
+        
+        <div class="sidebar-header">
+            <h6 class="text-center">Project</h6>
+        </div>
+
+        <div class="sidebar-content">
+            @if (_root is not null)
+            {
+                @RenderFolder(_root)
+            }
+        </div>
+    </aside>
+
+    <main class="editor">
+        @if (_selectedFile is null)
+        {
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <h4>Select a file</h4>
+                <p>Choose a file on the left to edit.</p>
+            </div>
+        }
+        else
+        {
+            @* <div class="editor-header"> *@
+            @*     <div class="file-info"> *@
+            @*         <i class="bi bi-file-earmark-code"></i> *@
+            @*         <strong>@_selectedFile.Name</strong> *@
+            @*     </div> *@
+            @* *@
+            @*     <div style="display:flex; align-items:center; gap:12px;"> *@
+            @*         <small class="file-path">@_selectedFile.Name</small> *@
+            @*     </div> *@
+            @* </div> *@
+
+            <div id="monaco-editor" class="monaco-host"></div>
+        }
+    </main>
+</div>
+
+@if (_createNewFileActive)
+{
+    <div class="modal-create-file">
+        <div class="modal-header text-center mb-2">
+            <h2 style="color: white">Create New File</h2>
+        </div>
+
+        <EditForm Model="_nameNewFile" OnValidSubmit="Criar">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <InputText class="input-field"
+                       placeholder="File name..."
+                       @bind-Value="_nameNewFile.Name" />
+
+            <div class="actions d-flex justify-content-center align-items-center mt-2">
+                <button type="button" class="btn-cancel" @onclick="CancelAreaCreate">
+                    Cancel
+                </button>
+
+                <button type="submit" class="btn-create">
+                    Create
+                </button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@if (_showContextMenu)
+{
+    <div class="context-backdrop" @onclick="CloseContextMenu">
+        <div class="context-menu"
+             @onclick:stopPropagation="true"
+             style="top:@($"{_clientY}px"); left:@($"{_clientX}px");">
+
+            <div class="menu-item" @onclick="CreateNewFile">
+                New File
+            </div>
+
+            <div class="menu-item" @onclick="CreateFolder">
+                New Folder
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showRemoveFile)
+{
+    <div class="context-backdrop" @onclick="CancelRemoveFile">
+        <div class="context-menu"
+             @onclick:stopPropagation="true"
+             style="top:@($"{_clientY}px"); left:@($"{_clientX}px");">
+
+            <div class="menu-item" @onclick="ActiveRemove">
+                Remove
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid id { get; set; }
+
+    private FolderDto? _root;
+    private File? _selectedFile;
+    private string _selectedContent = "";
+    private IJSObjectReference? _module;
+    private bool _editorReady;
+    private bool _pendingEditorInit;
+    private string _errorMessage = "";
+
+    private bool _createNewFileActive;
+    private FolderDto? _currentFolderCreateFile;
+    private NameFileDto _nameNewFile = new();
+
+    private bool _showContextMenu;
+    private double _clientX;
+    private double _clientY;
+
+    private bool _showRemoveFile;
+    private string _NameFileRemove = "";
+
+    protected override void OnInitialized()
+    {
+        Toolbar.SaveRequested += Save;
+    }
+
+    public void Dispose()
+    {
+        Toolbar.SaveRequested -= Save;
+    }
+
+    private void ActiveRemove()
+        => RemoveFile(_root!);
+
+    private void RemoveFile(FolderDto project)
+    {
+        var fileInProject = project.Files.FirstOrDefault(x => x.Name == _NameFileRemove);
+        if (fileInProject is not null)
+            project.Files.Remove(fileInProject);
+        else
+            foreach (var sub in project.Folders)
+            {
+                var file = sub.Files.FirstOrDefault(x => x.Name == _NameFileRemove);
+
+                if (file is not null)
+                {
+                    sub.Files.Remove(file);
+                }
+                else
+                {
+                    foreach (var folderInSub in sub.Folders)
+                        RemoveFile(folderInSub);
+                }
+            }
+
+        CancelRemoveFile();
+    }
+
+    private void ShowRemoveFile(MouseEventArgs e, string fileName)
+    {
+        _showRemoveFile = true;
+        _NameFileRemove = fileName;
+        _clientX = e.ClientX;
+        _clientY = e.ClientY;
+    }
+
+    private void CancelRemoveFile()
+    {
+        _showRemoveFile = false;
+        _NameFileRemove = "";
+    }
+
+    private void Criar()
+    {
+        if (_currentFolderCreateFile is null)
+        {
+            _currentFolderCreateFile = null;
+            _nameNewFile = new();
+            _createNewFileActive = false;
+            return;
+        }
+
+        _currentFolderCreateFile.Files.Add(
+            new File(
+                _nameNewFile.Name,
+                "",
+                _currentFolderCreateFile.Id
+            )
+        );
+
+        _currentFolderCreateFile = null;
+        _nameNewFile = new();
+        _createNewFileActive = false;
+    }
+
+    private void GetAreaCreate(string file)
+    {
+        _createNewFileActive = true;
+        _currentFolderCreateFile = FindParentFolder(_root!, file);
+    }
+
+    private void CancelAreaCreate()
+    {
+        _currentFolderCreateFile = null;
+        _nameNewFile = new();
+        _createNewFileActive = false;
+    }
+
+    private FolderDto? FindParentFolder(FolderDto folder, string fileName)
+    {
+        if (folder.Files.Any(f => f.Name == fileName))
+            return folder;
+
+        foreach (var sub in folder.Folders)
+        {
+            var found = FindParentFolder(sub, fileName);
+
+            if (found is not null)
+                return found;
+        }
+
+        return null;
+    }
+
+    private void OpenContextMenu(MouseEventArgs e, FolderDto folder)
+    {
+        _currentFolderCreateFile = folder;
+
+        _clientX = e.ClientX;
+        _clientY = e.ClientY;
+
+        _showContextMenu = true;
+    }
+
+    private void CloseContextMenu()
+    {
+        _showContextMenu = false;
+    }
+
+    void CreateNewFile()
+    {
+        _showContextMenu = false;
+        _createNewFileActive = true;
+    }
+
+    void CreateFolder()
+    {
+        _showContextMenu = false;
+    }
+
+    private async Task Save()
+    {
+        await SaveCurrentFile();
+
+        var token = await AuthService.GetToken();
+        if (token is null)
+        {
+            LocalStorage.RemoveAuthCustomerFromStorage();
+            Nav.NavigateTo("/Customer/Login");
+            return;
+        }
+
+        if (_root is null)
+            return;
+
+        var client = new RestClient();
+        var request = new RestRequest("https://localhost:7249/Project/Update/Files", Method.Put)
+            .AddJsonBody(new
+            {
+                projectId = id,
+                compressFolders = service.CompressObject(new List<FolderDto> { _root })
+            })
+            .AddHeader("Authorization", $"Bearer {token}");
+
+        var response = await client.ExecuteAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _errorMessage = response.ErrorMessage ?? "Error saving project.";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await AuthService.GetToken();
+        if (token is null)
+        {
+            LocalStorage.RemoveAuthCustomerFromStorage();
+            Nav.NavigateTo("/Customer/Login");
+            return;
+        }
+
+        var client = new RestClient();
+        var request = new RestRequest($"https://localhost:7249/Project?ProjectId={id}", Method.Get)
+            .AddHeader("Authorization", $"Bearer {token}");
+
+        var response = await client.ExecuteAsync<GetProjectDto>(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        if (response.Data is null)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        _root = service.DecompressObject<IEnumerable<FolderDto>>(response.Data.ContentFolders).FirstOrDefault();
+        if (_root is null)
+            _root = new FolderDto() { Path = "src" };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./js/monacoInterop.js"
+            );
+
+            return;
+        }
+
+        if (_pendingEditorInit && _module is not null && _selectedFile is not null)
+        {
+            await _module.InvokeVoidAsync(
+                "createEditor",
+                "monaco-editor",
+                _selectedContent,
+                ExtensionsService.GetLanguage(_selectedFile.Name)
+            );
+
+            _editorReady = true;
+            _pendingEditorInit = false;
+        }
+    }
+
+    RenderFragment RenderFolder(FolderDto folder) => @<div class="folder">
+        <div class="folder-name"
+             @oncontextmenu="(e) => OpenContextMenu(e, folder)"
+             @oncontextmenu:preventDefault="true"
+             @ontouchend:preventDefault="true"
+             @ontouchmove:preventDefault="true">
+            <i class="bi bi-folder2"></i>
+            <span>@folder.Path</span>
+        </div>
+
+        @foreach (var file in folder.Files)
+        {
+            <div class="file @(_selectedFile?.Name == file.Name ? "active" : "")"
+                 @onclick="() => SelectFile(file)"
+                 @oncontextmenu="(e) => ShowRemoveFile(e, file.Name)"
+                 @oncontextmenu:preventDefault="true"
+                 @ontouchend:preventDefault="true"
+                 @ontouchmove:preventDefault="true">
+                <i class="bi bi-file-earmark"></i>
+                <span>@file.Name</span>
+            </div>
+        }
+
+        @foreach (var sub in folder.Folders)
+        {
+            @RenderFolder(sub)
+        }
+    </div>;
+
+    private async Task SelectFile(File file)
+    {
+        if (_selectedFile is not null && _editorReady)
+        {
+            await SaveCurrentFile();
+        }
+
+        _selectedFile = file;
+        _selectedContent = file.Content;
+
+        if (_editorReady && _module is not null)
+        {
+            await _module.InvokeVoidAsync("setEditorValue", _selectedContent);
+            await _module.InvokeVoidAsync("setLanguage", ExtensionsService.GetLanguage(file.Name));
+        }
+        else
+        {
+            _pendingEditorInit = true;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveCurrentFile()
+    {
+        if (_selectedFile is null || _module is null || _root is null)
+            return;
+
+        var content = await _module.InvokeAsync<string>("getEditorValue");
+
+        var fileInTree = FindFileById(_root, _selectedFile.Name);
+        if (fileInTree is null)
+            return;
+
+        fileInTree.Content = content;
+        _selectedContent = content;
+        _selectedFile = fileInTree;
+    }
+
+    private static File? FindFileById(FolderDto folder, string name)
+    {
+        var file = folder.Files.FirstOrDefault(f => f.Name == name);
+        if (file is not null)
+            return file;
+
+        foreach (var subFolder in folder.Folders)
+        {
+            var found = FindFileById(subFolder, name);
+            if (found is not null)
+                return found;
+        }
+
+        return null;
+    }
+}

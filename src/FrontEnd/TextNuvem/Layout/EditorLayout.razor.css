@@ -1,0 +1,124 @@
+.editor-shell {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #1e1e1e;
+}
+
+.editor-topbar {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    background: #252526;
+    border-bottom: 1px solid #333;
+    color: #fff;
+    user-select: none;
+}
+
+.topbar-left,
+.topbar-center,
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+}
+
+.topbar-center {
+    justify-content: center;
+    flex: 1;
+}
+
+.topbar-title {
+    font-size: 14px;
+    font-weight: 600;
+    opacity: .9;
+}
+
+.topbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #3c3c3c;
+    background: #2d2d30;
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: .15s ease;
+}
+
+.topbar-btn:hover {
+    background: #3a3a3d;
+}
+
+.topbar-btn-primary {
+    background: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.topbar-btn-primary:hover {
+    background: #0b5ed7;
+}
+
+.editor-body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.activity-bar {
+    width: 48px;
+    background: #1e1e1e;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 8px;
+}
+
+.activity-item {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.activity-item:hover {
+    background: #2a2a2a;
+    color: white;
+}
+
+.activity-item.active {
+    background: #252526;
+    color: white;
+    border-left: 2px solid #0d6efd;
+}
+
+.sidebar.closed {
+    width: 0;
+    overflow: hidden;
+    padding: 0;
+    border: none;
+}
+
+/* telas pequenas */
+@media (max-width: 820px) {
+    .activity-bar {
+        display: none;
+    }
+
+    .editor-body {
+        display: block;
+    }
+
+    .sidebar {
+        width: 100%;
+    }
+}

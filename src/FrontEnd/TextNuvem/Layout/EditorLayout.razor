@@ -1,0 +1,65 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Nav
+@inject TextNuvem.Service.EditorToolbarService Toolbar
+
+<div class="editor-shell">
+    <header class="editor-topbar">
+        <div class="topbar-left">
+            <button class="topbar-btn" @onclick="GoHome">
+                <i class="bi bi-arrow-left"></i>
+                <span>Previous</span>
+            </button>
+        </div>
+
+        <div class="topbar-center">
+            <span class="topbar-title">Editor</span>
+        </div>
+
+        <div class="topbar-right">
+            <button class="topbar-btn topbar-btn-primary" @onclick="Save">
+                <i class="bi bi-save"></i>
+                <span>Save</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="editor-body">
+        <div class="activity-bar">
+            <div class="activity-item @(Toolbar.IsExplorerOpen ? "active" : "")"
+                 @onclick="ToggleExplorer">
+                <i class="bi bi-files"></i>
+            </div>
+
+            <div class="activity-item">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <div class="activity-item">
+                <i class="bi bi-gear"></i>
+            </div>
+        </div>
+
+        @Body
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Toolbar.ExplorerChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        Toolbar.ExplorerChanged -= StateHasChanged;
+    }
+
+    private void GoHome()
+        => Nav.NavigateTo("/");
+
+    private async Task Save()
+        => await Toolbar.RequestSaveAsync();
+
+    private void ToggleExplorer()
+        => Toolbar.ToggleExplorer();
+}
