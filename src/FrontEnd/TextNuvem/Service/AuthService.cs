@@ -8,9 +8,14 @@ namespace TextNuvem.Service;
 
 internal class AuthService: DelegatingHandler
 {
+    
     private readonly NavigationManager _navigation;
     private readonly LocalStorageService _storageService;
 
+    private readonly string RegisterEndPoint = $"{ApiConfiguration.BaseUrl}/Customer/Register";
+    private readonly string RefreshEndPoint = $"{ApiConfiguration.BaseUrl}/Customer/RefreshToken";
+    private readonly string LoginEndPoint = $"{ApiConfiguration.BaseUrl}/Customer/Login";
+    
     public AuthService(LocalStorageService storageService, NavigationManager navigation)
     {
         _storageService = storageService;
@@ -19,7 +24,7 @@ internal class AuthService: DelegatingHandler
     
     public async Task<string?> GetToken()
     {
-        if (!(await CustomerIsAuthentication()))
+        if (!await CustomerIsAuthentication())
         {
             _storageService.RemoveAuthCustomerFromStorage();
             _navigation.NavigateTo("/Customer/Login");
@@ -72,7 +77,7 @@ internal class AuthService: DelegatingHandler
     
     public async Task<Result> Login(CustomerLoginDto model)
     {
-        var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Customer/Login",Method.Post)
+        var request = new RestRequest(LoginEndPoint,Method.Post)
             .AddJsonBody(model);
         
         var client = new RestClient();
@@ -87,8 +92,7 @@ internal class AuthService: DelegatingHandler
     
     public async Task<Result> Register(CustomerRegisterDto model)
     {
-        Console.WriteLine("Chegou");
-        var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Customer/Register",Method.Post)
+        var request = new RestRequest(RegisterEndPoint,Method.Post)
             .AddJsonBody(model);
         
         var client = new RestClient();
@@ -113,7 +117,7 @@ internal class AuthService: DelegatingHandler
         
         var model = new AuthRefreshToken(refreshToken,Guid.Parse(customerId) );
         
-        var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Customer/RefreshToken",Method.Post)
+        var request = new RestRequest(RefreshEndPoint,Method.Post)
             .AddJsonBody(model);
         
         var client = new RestClient();
