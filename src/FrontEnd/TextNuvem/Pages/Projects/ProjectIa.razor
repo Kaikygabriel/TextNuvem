@@ -118,6 +118,36 @@
     </div>
 }
 
+@if (_showCreateFolder)
+{
+    <div class="modal-create-file">
+    
+        <div class="modal-header text-center mb-2">
+            <h2 style="color: white">Create New Folder</h2>
+        </div>
+
+        <EditForm Model="_nameFolderCreate" OnValidSubmit="CreateNewFolder">
+        
+            <DataAnnotationsValidator/>
+            <ValidationSummary/>
+            
+            <InputText class="input-field"
+                       placeholder="File name..."
+                       @bind-Value="_nameFolderCreate.Name" />
+
+            <div class="actions d-flex justify-content-center align-items-center mt-2">
+                <button type="button" class="btn-cancel" @onclick="RemoveShowCreateFolder">
+                    Cancel
+                </button>
+
+                <button type="submit" class="btn-create">
+                    Create
+                </button>
+            </div>
+
+        </EditForm>
+    </div>  
+}
 @code {
     [Parameter]
     public Guid id { get; set; }
@@ -141,6 +171,10 @@
     private bool _showRemoveFile;
     private string _NameFileRemove = "";
 
+    private bool _showCreateFolder;
+    private CreateFolderDto _nameFolderCreate = new();
+
+    
     protected override void OnInitialized()
     {
         Toolbar.SaveRequested += Save;
@@ -413,6 +447,25 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private void CreateNewFolder()
+    {
+        if(!string.IsNullOrEmpty(_nameFolderCreate.Name))
+            _root.Folders.Add(new FolderDto(){Path = _nameFolderCreate.Name});
+        RemoveShowCreateFolder();
+    }
+    
+    private void ShowCreateFolder()
+    {
+        _showContextMenu = false;
+        _showCreateFolder = true;
+    }
+    private void RemoveShowCreateFolder()
+    {
+        _showCreateFolder = false;
+        _nameFolderCreate.Name = "";
+    }
+
+    
     private async Task SaveCurrentFile()
     {
         if (_selectedFile is null || _module is null || _root is null)
