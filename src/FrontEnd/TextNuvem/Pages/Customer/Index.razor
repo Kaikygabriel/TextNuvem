@@ -135,7 +135,7 @@
         }
 
         _dashBoard = await response.Content.ReadFromJsonAsync<CustomerDashBoard>();
-        _dashBoard?.Projects.OrderBy(x => x.Favorite);
+        _dashBoard?.Projects.OrderBy(x => x.Favorite).Take(15);
     }
 
     private async Task<bool> TryAuthenticationUserRefreshToken()

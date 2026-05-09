@@ -1,0 +1,141 @@
+@page "/Projects"
+@using RestSharp
+@using TextNuvem.Dtos.Customers
+@using TextNuvem.Service
+@inject AuthService ServiceAuth
+@inject NavigationManager Nav
+@inject LocalStorageService LocalStorage
+@inject IHttpClientFactory Factory
+
+@if (_dashBoard is null)
+{
+    <span class="spinner-grow"></span>   
+    <p class="loading-progress-text">Loading...</p>
+}
+else
+{
+    <h1 class="h1 text-center">Projects</h1>
+
+    <div class="card shadow-sm border-0 p-3 ">
+        @foreach (var project in _dashBoard.Projects.OrderByDescending(x => x.Favorite))
+        {
+            <div class="project-item d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="d-flex align-items-center">
+                        <p class="text-black text-project mb-0 cursor-pointer">@project.Name</p>
+
+                        @if (project.Favorite)
+                        {
+                            <i class="bi cursor-pointer bi-star-fill text-warning ms-2" @onclick="(e) => RemoveFavorite(project.Id)"></i>
+                        }
+                        else
+                        {
+                            <i class="bi cursor-pointer bi-star text-mutedms-2" @onclick="(e) => ToFavorite(project.Id)"></i>
+                        }
+
+                    </div>
+
+                    <small class="text-muted">
+                        @project.LastUpdate.ToString("dd/MM/yyyy")
+                    </small>
+                </div>
+
+                <a class="btn btn-primary btn-sm px-5 text-decoration-none" href="/Editor/@project.Id">Abrir</a>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private CustomerDashBoard? _dashBoard;
+    private string _error = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!(await ServiceAuth.CustomerIsAuthentication()))
+        {
+            LocalStorage.RemoveAuthCustomerFromStorage();
+            Nav.NavigateTo("/Customer/Login");
+        }
+
+        var expiredToken =await LocalStorage.GetTokenExpired();
+        if ( expiredToken is null || expiredToken < DateTime.UtcNow)
+        {
+            var expiredRefreshToken =   await LocalStorage.GetRefreshTokenExpired();
+            if ( expiredRefreshToken is null || expiredRefreshToken < DateTime.UtcNow)
+            {
+                LocalStorage.RemoveAuthCustomerFromStorage();
+                Nav.NavigateTo("/Customer/Login");
+            }
+
+            var result = await TryAuthenticationUserRefreshToken();
+            if (!result)
+            {
+                LocalStorage.RemoveAuthCustomerFromStorage();
+                Nav.NavigateTo("/Customer/Login");
+            }
+        }
+        
+        var id = await LocalStorage.GetCustomerId();
+        var client = Factory.CreateClient("Api");
+
+        var response = await client.GetAsync($"/Customer/DashBoard?CustomerId={id}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            _error = error;
+            return;
+        }
+
+        _dashBoard = await response.Content.ReadFromJsonAsync<CustomerDashBoard>();
+        _dashBoard?.Projects.OrderBy(x => x.Favorite).Take(15);
+    }
+
+    private async Task<bool> TryAuthenticationUserRefreshToken()
+    {
+        var result = await ServiceAuth.LoginRefreshToken();
+        if (!result.IsSuccess)
+            return false;
+
+        return true;
+    }
+    private async Task ToFavorite(Guid id)
+    {
+        var token =await ServiceAuth.GetToken();
+        if(token is null)
+        {
+            LocalStorage.RemoveAuthCustomerFromStorage();
+            Nav.NavigateTo("/Customer/Login");
+        }
+        
+        var client = new RestClient();
+        var request = new RestRequest("https://localhost:7249/Project/SetFavorite")
+            .AddJsonBody(new {projectId = id})
+            .AddHeader("Authorization",$"Bearer {token}");
+        
+        var response = await client.PostAsync(request);
+        
+        _dashBoard?.Projects.First(x => x.Id == id).Favorite = true;
+    }
+
+    private async Task RemoveFavorite(Guid id)
+    {
+        var token =await ServiceAuth.GetToken();
+        if(token is null)
+        {
+            LocalStorage.RemoveAuthCustomerFromStorage();
+            Nav.NavigateTo("/Customer/Login");
+        }
+        
+        var client = new RestClient();
+        var request = new RestRequest("https://localhost:7249/Project/RemoveFavorite")
+            .AddJsonBody(new {projectId = id})
+            .AddHeader("Authorization",$"Bearer {token}");
+        
+        var response = await client.PostAsync(request);
+        
+        _dashBoard?.Projects.First(x => x.Id == id).Favorite = false;
+    }
+
+}
