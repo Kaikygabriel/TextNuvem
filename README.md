@@ -42,10 +42,9 @@ O objetivo do TextNuvem é construir uma plataforma que combine:
 
 ## 📌 Roadmap (Planejado)
 
-* [ ] Sintaxe destacada (syntax highlighting)
+* [ ] Sintaxe destacada 
 * [ ] Auto-save
-* [ ] Execução de código (estudo futuro)
-* [ ] Compartilhamento de projetos
+* [ ] Execução de código 
 * [ ] PWA / suporte offline
 
 ## 🚀 Executando o projeto
