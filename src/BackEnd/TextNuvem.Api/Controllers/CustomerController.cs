@@ -18,6 +18,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPost("RefreshToken")]
+    [AllowAnonymous]
     public async Task<ActionResult> RefreshToken(LoginByRefreshTokenRequest request)
     {
         var result = await _sender.Send(request);
@@ -25,6 +26,7 @@ public class CustomerController : ControllerBase
     }
     
     [HttpPost("Register")]
+    [AllowAnonymous]
     public async Task<ActionResult> Register(RegisterCustomerRequest request)
     {
         var result = await _sender.Send(request);
@@ -32,6 +34,7 @@ public class CustomerController : ControllerBase
     }
     
     [HttpPost("Login")]
+    [AllowAnonymous]
     public async Task<ActionResult> Login(LoginCustomerRequest request)
     {
         var result = await _sender.Send(request);
