@@ -50,13 +50,7 @@ public static class DependencyInjection
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!))
             };
         });
-        services.AddAuthorization(x=>
-        {
-            x.FallbackPolicy = new AuthorizationPolicyBuilder()
-                .RequireAuthenticatedUser()
-                .Build();
-
-        });
+        services.AddAuthorization();
         
         return services;
     }
