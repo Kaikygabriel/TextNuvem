@@ -29,14 +29,17 @@ builder.Services.AddCorsFromApplication();
 
 var app = builder.Build();
 
+var port = Environment.GetEnvironmentVariable("PORT");
+
+if (!string.IsNullOrWhiteSpace(port))
+    app.Urls.Add($"http://*:{port}");
+
 if (app.Environment.IsDevelopment())
     app.UseExceptionGlobalHandler();
 
 app.MapOpenApi();
 
 app.UseSwaggerUI(x=>x.SwaggerEndpoint("/openapi/v1.json","v1"));
-
-app.UseHttpsRedirection();
 
 app.UseCors("AllowBlazorWasm");
 
