@@ -7,30 +7,20 @@ namespace TextNuvem.Infra.Data.Mapping;
 
 internal sealed class ProjectMap : IEntityTypeConfiguration<Project>
 {
-    
-    private readonly ICompactorService _compactorService;
-
-    public ProjectMap(ICompactorService compactorService)
-    {
-        _compactorService = compactorService;
-    }
-    
     public void Configure(EntityTypeBuilder<Project> builder)
     {
-        builder.ToTable("Project");
+        builder.ToTable("projects");
 
         builder.HasKey(x => x.Id);
         
-
         builder.Property(x => x.LastUpdate)
-            .HasColumnName("LastUpdateDate")
-            .HasColumnType("DATETIME2")
+            .HasColumnName("last_update_date")
+            .HasColumnType("timestamptz")
             .IsRequired();
 
         builder.Property(x => x.Name)
             .HasMaxLength(160)
-            .HasColumnType("VARCHAR")
-            .HasColumnName("Name")
+            .HasColumnName("name")
             .IsRequired();
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using TextNuvem.Api.Extensions;
 using TextNuvem.Application.Ioc;
 using TextNuvem.Infra.Data.Context;
@@ -8,14 +9,21 @@ var builder = WebApplication.CreateBuilder(args);
 var connection = builder.Configuration.GetConnectionString("DefaultConnection") ??
                  throw new Exception("ConnectionString not found !");
 
+var dataSourceBuilder =
+    new NpgsqlDataSourceBuilder(connection);
+dataSourceBuilder.EnableDynamicJson();
+
+var dataSource = dataSourceBuilder.Build();
+
 builder.Services.AddControllers();
 builder.Services.AddApplication();
 builder.Services.AddInfra(builder.Configuration);
 
-builder.Services.AddDbContext<AppDbContext>(x =>
-    x.UseSqlServer(
-        connection,x => x.MigrationsAssembly(typeof(Program).Assembly)));
- 
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseNpgsql(dataSource,b => b.MigrationsAssembly("TextNuvem.Api"));
+});
+
 builder.Services.AddDocumentation();
 builder.Services.AddCorsFromApplication();
 

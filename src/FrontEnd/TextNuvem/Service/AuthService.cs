@@ -8,7 +8,6 @@ namespace TextNuvem.Service;
 
 internal class AuthService: DelegatingHandler
 {
-    
     private readonly NavigationManager _navigation;
     private readonly LocalStorageService _storageService;
 

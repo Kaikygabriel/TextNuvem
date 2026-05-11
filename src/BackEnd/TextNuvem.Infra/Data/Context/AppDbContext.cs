@@ -17,13 +17,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext>options) : DbCont
 
         modelBuilder.Entity<Project>()
             .Property(x => x.Folders)
+            .HasColumnName("content")
             .HasConversion<string>(
                 x => compactor.CompressObject(x),
                 x => (string.IsNullOrWhiteSpace(x)
                     ? new List<Folder>()
                     : compactor.DecompressObject<List<FolderDatabaseDto>>(x)
                         .Select(x=>(Folder)x).ToList())
-            ).HasColumnType("TEXT");
+            ).HasColumnType("text");
         
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }

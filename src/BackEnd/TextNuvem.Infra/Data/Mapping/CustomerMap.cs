@@ -10,26 +10,25 @@ internal sealed class CustomerMap:IEntityTypeConfiguration<Customer>
 { 
     public void Configure(EntityTypeBuilder<Customer> builder)
     {
-        builder.ToTable("Customer");
+        builder.ToTable("customers");
 
         builder.HasKey(x => x.Id);
         
         builder.OwnsOne(x => x.Email, x =>
         {
             x.Property(x => x.Address)
-                .HasColumnName("Email")
-                .HasColumnType("VARCHAR")
+                .HasColumnName("email")
                 .HasMaxLength(255)
                 .IsRequired();
-            x.HasIndex(x => x.Address, "IX_Customer_Email")
+            
+            x.HasIndex(x => x.Address, "ix_customer_email")
                 .IsUnique();
         });
         
         builder.OwnsOne(x => x.Password, x =>
         {
             x.Property(x => x.HashPassword)
-                .HasColumnName("HashPassword")
-                .HasColumnType("NVARCHAR")
+                .HasColumnName("hash_password")
                 .HasMaxLength(300)
                 .IsRequired();
         });
@@ -37,18 +36,18 @@ internal sealed class CustomerMap:IEntityTypeConfiguration<Customer>
         builder.OwnsOne(x => x.RefreshToken, x =>
         {
             x.Property(x => x.Token)
-                .HasColumnName("RefreshToken")
+                .HasColumnName("refresh_token")
                 .HasColumnType("TEXT")
                 .IsRequired(false);
+            
             x.Property(x => x.Expired)
-                .HasColumnName("ExpiredRefreshToken")
-                .HasColumnType("DATETIME2")
+                .HasColumnName("expired_refresh_token")
+                .HasColumnType("timestamptz")
                 .IsRequired(false);
         });
         
         builder.Property(x=>x.Name)
-            .HasColumnName("Name")
-            .HasColumnType("VARCHAR")
+            .HasColumnName("name")
             .HasMaxLength(120)
             .IsRequired();
 
@@ -61,15 +60,16 @@ internal sealed class CustomerMap:IEntityTypeConfiguration<Customer>
         builder.HasOne(x => x.LastProjectUpdate)
             .WithOne()
             .HasForeignKey<Customer>(x=>x.LastProjectIdUpdate)
-            .HasConstraintName("FK_Customer_LastProjectUpdateId")
+            .HasConstraintName("fk_customer_last_project_update_id")
             .IsRequired(false);
 
         builder.Property(x => x.ChangesDate)
-            .HasConversion<string>(x =>
-                    JsonSerializer.Serialize(x), x =>
-                    string.IsNullOrWhiteSpace(x)
-                        ? new List<ChangesDate>()
-                        : JsonSerializer.Deserialize<List<ChangesDate>>(x) ?? new()
-            );
+            .HasColumnType("jsonb"); 
+        // .HasConversion<string>(x =>
+        //         JsonSerializer.Serialize(x), x =>
+        //         string.IsNullOrWhiteSpace(x)
+        //             ? new List<ChangesDate>()
+        //             : JsonSerializer.Deserialize<List<ChangesDate>>(x) ?? new()
+        // );
     }
 }
