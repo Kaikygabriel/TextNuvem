@@ -1,13 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TextNuvem.Application.Services;
 using TextNuvem.Application.UseCases.Project.Command.Request;
 using TextNuvem.Application.UseCases.Project.Query.Request;
-using TextNuvem.Domain.BackOffice.Entities;
-using TextNuvem.Domain.BackOffice.Repositories;
-using TextNuvem.Infra.Dtos.Folders;
-using File = TextNuvem.Domain.BackOffice.Entities.File;
 
 namespace TextNuvem.Api.Controllers;
 
@@ -44,7 +39,7 @@ public class ProjectController : ControllerBase
         return result.IsSuccess ? Ok() : BadRequest(result.Error);
     }
     
-    [HttpPost("Create")]
+    [HttpPost]
     public async Task<ActionResult> Create(CreateProjectRequest request)
     {
         var result = await _sender.Send(request);

@@ -10,7 +10,7 @@ builder.Services.AddScoped<EditorToolbarService>();
 
 builder.Services.AddHttpClient("Api", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7249/");
+    client.BaseAddress = new Uri("https://textnuvem.onrender.com/");
 })
 .AddHttpMessageHandler<AuthService>(); ;
 

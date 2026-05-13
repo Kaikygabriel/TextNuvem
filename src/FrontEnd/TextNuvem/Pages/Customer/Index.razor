@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using RestSharp
+@using TextNuvem.Configuration
 @using TextNuvem.Dtos.Customers
 @using TextNuvem.Pages.Customer.Components
 @using TextNuvem.Service
@@ -156,7 +157,7 @@
         }
         
         var client = new RestClient();
-        var request = new RestRequest("https://localhost:7249/Project/SetFavorite")
+        var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Project/SetFavorite")
             .AddJsonBody(new {projectId = id})
             .AddHeader("Authorization",$"Bearer {token}");
         
@@ -175,7 +176,7 @@
         }
         
         var client = new RestClient();
-        var request = new RestRequest("https://localhost:7249/Project/RemoveFavorite")
+        var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Project/RemoveFavorite")
             .AddJsonBody(new {projectId = id})
             .AddHeader("Authorization",$"Bearer {token}");
         
@@ -194,7 +195,8 @@
             Nav.NavigateTo("/Customer/Login");
         }
         var client = new RestClient();
-        var request = new RestRequest($"https://localhost:7249/Customer/LastProject?CustomerId={customerId}"
+        
+        var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Customer/Last-Project?CustomerId={customerId}"
                 ,Method.Post)
             .AddHeader("Authorization",$"Bearer {token}");
         

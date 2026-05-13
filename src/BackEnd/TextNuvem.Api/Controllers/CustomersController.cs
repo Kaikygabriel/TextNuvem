@@ -52,7 +52,7 @@ public class CustomerController : ControllerBase
     }
     
     [Authorize]
-    [HttpGet("LastProject")]
+    [HttpGet("Last-Project")]
     public async Task<ActionResult> LastProject([FromQuery]GetLastProjectUpdateRequest request)
     {
         if (request.CustomerId.ToString() != User.Identity!.Name)

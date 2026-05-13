@@ -57,7 +57,7 @@
                 Nav.NavigateTo("/");
 
             var client = new RestClient();
-            var request = new RestRequest("https://localhost:7249/Project/Create")
+            var request = new RestRequest("https://textnuvem.onrender.com/Project")
                 .AddJsonBody(_createProjectDto)
                 .AddHeader("Authorization",$"Bearer {token}");
 

@@ -14,6 +14,7 @@ public record FolderDto
 
     public List<FolderDto> Folders { get; set; } = [];
     public List<File>Files { get;set; } = [];
-    
 
+    public bool IsOpen { get; set; }
+    public int Count { get; set; } = 1;
 }

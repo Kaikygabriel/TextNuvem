@@ -7,7 +7,12 @@ public class EditorToolbarService
 
     public bool IsExplorerOpen { get; private set; } = true;
     public event Action? ExplorerChanged;
-
+    
+    public event Action? CloseExplorer;
+    public event Action? OpenExplorer;
+    
+    public event Action? HasAlterState;
+    
     public async Task RequestSaveAsync()
     {
         if (SaveRequested is not null)
@@ -16,7 +21,13 @@ public class EditorToolbarService
 
     public void ToggleExplorer()
     {
+        if(IsExplorerOpen)
+            CloseExplorer?.Invoke();
+        else
+            OpenExplorer?.Invoke();
+        
         IsExplorerOpen = !IsExplorerOpen;
         ExplorerChanged?.Invoke();
+        HasAlterState?.Invoke();
     }
 }

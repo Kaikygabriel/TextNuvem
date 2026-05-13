@@ -1,5 +1,6 @@
 @page "/Projects"
 @using RestSharp
+@using TextNuvem.Configuration
 @using TextNuvem.Dtos.Customers
 @using TextNuvem.Service
 @inject AuthService ServiceAuth
@@ -79,7 +80,7 @@ else
         var id = await LocalStorage.GetCustomerId();
         var client = Factory.CreateClient("Api");
 
-        var response = await client.GetAsync($"/Customer/DashBoard?CustomerId={id}");
+        var response = await client.GetAsync($"{ApiConfiguration.BaseUrl}/Customer/DashBoard?CustomerId={id}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -110,7 +111,7 @@ else
         }
         
         var client = new RestClient();
-        var request = new RestRequest("https://localhost:7249/Project/SetFavorite")
+        var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Project/SetFavorite")
             .AddJsonBody(new {projectId = id})
             .AddHeader("Authorization",$"Bearer {token}");
         
@@ -129,7 +130,7 @@ else
         }
         
         var client = new RestClient();
-        var request = new RestRequest("https://localhost:7249/Project/RemoveFavorite")
+        var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Project/RemoveFavorite")
             .AddJsonBody(new {projectId = id})
             .AddHeader("Authorization",$"Bearer {token}");
         
