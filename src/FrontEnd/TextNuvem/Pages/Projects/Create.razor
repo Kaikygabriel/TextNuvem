@@ -1,5 +1,6 @@
 @page "/Create"
 @using RestSharp
+@using TextNuvem.Configuration
 @using TextNuvem.Dtos.Projects
 @using TextNuvem.Service
 @inject AuthService AuthService
@@ -57,7 +58,7 @@
                 Nav.NavigateTo("/");
 
             var client = new RestClient();
-            var request = new RestRequest("https://textnuvem.onrender.com/Project")
+            var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Project")
                 .AddJsonBody(_createProjectDto)
                 .AddHeader("Authorization",$"Bearer {token}");
 

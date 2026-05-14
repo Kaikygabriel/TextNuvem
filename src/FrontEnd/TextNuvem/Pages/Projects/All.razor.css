@@ -64,3 +64,21 @@
 .cursor-pointer{
     cursor:  pointer;
 }
+
+.buttons-project{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+}
+
+@media (max-width: 800px)
+
+{
+    .buttons-project{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+    }
+}

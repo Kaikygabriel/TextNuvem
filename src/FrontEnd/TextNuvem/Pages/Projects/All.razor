@@ -2,6 +2,7 @@
 @using RestSharp
 @using TextNuvem.Configuration
 @using TextNuvem.Dtos.Customers
+@using TextNuvem.Dtos.Projects
 @using TextNuvem.Service
 @inject AuthService ServiceAuth
 @inject NavigationManager Nav
@@ -23,7 +24,9 @@ else
             <div class="project-item d-flex justify-content-between align-items-center">
                 <div>
                     <div class="d-flex align-items-center">
-                        <p class="text-black text-project mb-0 cursor-pointer">@project.Name</p>
+                        <a class="text-black text-project mb-0 cursor-pointer text-decoration-none"
+                            href="/Editor/@project.Id"
+                           >@project.Name</a>
 
                         @if (project.Favorite)
                         {
@@ -41,16 +44,57 @@ else
                     </small>
                 </div>
 
-                <a class="btn btn-primary btn-sm px-5 text-decoration-none" href="/Editor/@project.Id">Abrir</a>
+                <div class="buttons-project">
+                    <button class="btn btn-danger btn-sm px-5"
+                            @onclick="() => ShowRemoveProject(project)">
+                        Deletar
+                    </button>
+                
+                    <a class="btn btn-primary btn-sm px-5 text-decoration-none" href="/Editor/@project.Id">Abrir</a>    
+                </div>
+                
             </div>
         }
+    </div>
+}
+
+@if (_showRemoveProject)
+{
+    <div style="left: 50%; transform: translate(-50%, -50%); z-index: 10; " 
+         class="dashboard d-flex justify-content-center align-items-center position-relative top-50">
+        <div class="card shadow-sm" style="width: 400px; padding: 30px; text-align: center;">
+
+            <h3 class="text-project mb-3">Remover Projeto</h3>
+
+            <p style="color: #555;">
+                <strong>@_projectRemove?.Name</strong>
+                Tem certeza que deseja deletar este projeto?
+                <br>
+                <strong>Essa ação não pode ser desfeita.</strong>
+            </p>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button class="btn btn-light cursor-pointer" style="border-radius: 20px; padding: 10px 20px;" @onclick="CloseRemoveProject">
+                    Cancelar
+                </button>
+
+                <button class="btn gradient-purple cursor-pointer" style="border-radius: 20px; padding: 10px 20px; color: white;" 
+                        @onclick="RemoveProject">
+                    Deletar
+                </button>
+            </div>
+
+        </div>
     </div>
 }
 
 @code {
     private CustomerDashBoard? _dashBoard;
     private string _error = string.Empty;
-
+    
+    private bool _showRemoveProject = false;
+    private ProjectDto? _projectRemove = null;
+    
     protected override async Task OnInitializedAsync()
     {
         if (!(await ServiceAuth.CustomerIsAuthentication()))
@@ -137,6 +181,39 @@ else
         var response = await client.PostAsync(request);
         
         _dashBoard?.Projects.First(x => x.Id == id).Favorite = false;
+    }
+
+    private void ShowRemoveProject(ProjectDto project)
+    {
+        _showRemoveProject = true;
+        _projectRemove = project;
+    }
+    private void CloseRemoveProject()
+    {
+        _showRemoveProject = false;
+        _projectRemove = null;
+    }
+    
+    private async Task RemoveProject()
+    {
+        if (_projectRemove is null)
+            return;
+        
+        var token =await ServiceAuth.GetToken();
+        var idCustomer =await LocalStorage.GetCustomerId();
+        
+        if(token is null || idCustomer is null )
+        {
+            LocalStorage.RemoveAuthCustomerFromStorage();
+            Nav.NavigateTo("/Customer/Login");
+        }
+        
+        var client = new RestClient();
+        var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Project")
+            .AddJsonBody(new {customerId = Guid.Parse(idCustomer!),projectId = _projectRemove.Id })
+            .AddHeader("Authorization",$"Bearer {token}");
+        
+        var response = await client.DeleteAsync(request);
     }
 
 }
