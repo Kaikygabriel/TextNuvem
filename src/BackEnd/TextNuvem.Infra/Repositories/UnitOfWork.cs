@@ -12,8 +12,8 @@ internal sealed class UnitOfWork : IUnitOfWork
         _appDbContext = appDbContext;
     }
 
-    public async Task CommitAsync()
+    public async Task CommitAsync(CancellationToken cancellationToken = default)
     {
-        await _appDbContext.SaveChangesAsync();
+        await _appDbContext.SaveChangesAsync(cancellationToken);
     }
 }

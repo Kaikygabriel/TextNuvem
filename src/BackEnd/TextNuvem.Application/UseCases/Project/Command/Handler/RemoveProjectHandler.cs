@@ -1,4 +1,3 @@
-using MediatR;
 using TextNuvem.Application.UseCases.Project.Command.Request;
 using TextNuvem.Domain.BackOffice.Abstraction;
 using TextNuvem.Domain.BackOffice.Commum;
@@ -10,25 +9,26 @@ internal sealed class RemoveProjectHandler : IRequestHandler<RemoveProjectReques
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICustomerRepository _customerRepository;
-
-    public RemoveProjectHandler( IUnitOfWork unitOfWork, ICustomerRepository customerRepository)
+    private readonly IProjectRepository _projectRepository;
+    
+    public RemoveProjectHandler( IUnitOfWork unitOfWork, ICustomerRepository customerRepository, IProjectRepository projectRepository)
     {
         _unitOfWork = unitOfWork;
         _customerRepository = customerRepository;
+        _projectRepository = projectRepository;
     }
 
     public async Task<Result> Handle(RemoveProjectRequest request, CancellationToken cancellationToken)
     {
-        var customer = await _customerRepository.GetById(request.CustomerId);
-        if (customer is null)
+        var project = await _projectRepository.GetById(request.ProjectId);
+        if(project is null)
             return new Error("Project or Customer, not found");
-
-        var resultRemoveProject = customer.RemoveProject(request.ProjectId);
-        if (!resultRemoveProject.IsSuccess)
-            return resultRemoveProject.Error;
-
-        _customerRepository.Update(customer);
-        await _unitOfWork.CommitAsync();
+        
+        if(project.CustomerId != request.CustomerId)
+            return new Error("Project or Customer, not found");
+        
+        _projectRepository.Delete(project);
+        await _unitOfWork.CommitAsync(cancellationToken);
 
         return Result.Success();
     }

@@ -16,11 +16,11 @@ internal sealed class CustomerQuery : ICustomerQuery
         _appDbContext = appDbContext;
     }
 
-    public async Task<CustomerDashBoard?> GetDashBoardById(Guid id)
+    public async Task<CustomerDashBoard?> GetDashBoardById(Guid id,CancellationToken cancellationToken = default)
     {
         var customer = await _appDbContext.Customers
                 .Include(x=>x.Projects)
-                .FirstOrDefaultAsync(x=>x.Id == id);
+                .FirstOrDefaultAsync(x=>x.Id == id,cancellationToken);
         
         if (customer == null)
             return null;

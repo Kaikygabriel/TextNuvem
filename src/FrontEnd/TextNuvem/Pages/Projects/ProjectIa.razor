@@ -13,7 +13,6 @@
 @inject LocalStorageService LocalStorage
 @inject AuthService AuthService
 @implements IDisposable
-
 <div class="editor-container">
       
 @if (_showFiles)
@@ -38,7 +37,9 @@
     <main class="editor">
         @if (_selectedFile is null)
         {
-            <div class="empty-state">
+        <div class="empty-state dropzone"
+             @ref="_dropZone">
+
                 <div class="empty-icon">
                     <i class="bi bi-file-earmark-text"></i>
                 </div>
@@ -48,6 +49,8 @@
         }
         else
         { 
+            <button @onclick="ExportProject">Download Project</button>
+
             <div id="monaco-editor" class="monaco-host"></div>
         }
     </main>
@@ -94,6 +97,10 @@
 
             <div class="menu-item" @onclick="ShowCreateFolder">
                 New Folder
+            </div>
+            
+            <div class="menu-item" @onclick="@(() => RemoveFolder(_root))">
+                Remove
             </div>
         </div>
     </div>
@@ -175,11 +182,11 @@
 }
 
 @code {
-    
-    
     [Parameter]
     public Guid id { get; set; }
 
+    private ElementReference _dropZone;
+    
     private FolderDto? _root;
     private File? _selectedFile;
     private string _selectedContent = "";
@@ -206,7 +213,8 @@
 
     private void ShowFileMenu() => _showFiles = true;
     private void CloseFileMenu() => _showFiles = false;
-    
+
+    private FolderDto? _folderRemove = null;
     protected override void OnInitialized()
     {
         Toolbar.OpenExplorer += ShowFileMenu;
@@ -221,6 +229,26 @@
         Toolbar.SaveRequested -= Save;
     }
 
+    private void RemoveFolder(FolderDto folder )
+    {
+        for (var i = 0; i < folder.Folders.Count(); i++)
+        {
+            if (folder.Folders[i].Path == _folderRemove?.Path)
+            {
+                folder.Folders.RemoveAt(i);
+                CloseContextMenu();
+                StateHasChanged();
+
+                return;
+            }
+
+            RemoveFolder(folder.Folders[i]);
+        }
+
+        CloseContextMenu();
+        StateHasChanged();
+    }
+    
     private void ActiveRemove()
         => RemoveFile(_root!);
 
@@ -237,6 +265,7 @@
                 if (file is not null)
                 {
                     sub.Files.Remove(file);
+                    return;
                 }
                 else
                 {
@@ -320,6 +349,7 @@
 
         _clientX = e.ClientX;
         _clientY = e.ClientY;
+        _folderRemove = folder;
 
         _showContextMenu = true;
     }
@@ -407,8 +437,26 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+     
+        
         if (firstRender)
         {
+            _module = await JS.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./js/monacoInterop.js"
+            );
+
+            var dropModule = await JS.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./js/dropzone.js"
+            );
+
+            await dropModule.InvokeVoidAsync(
+                "registerDropZone",
+                _dropZone,
+                DotNetObjectReference.Create(this)
+            );
+            
             _module = await JS.InvokeAsync<IJSObjectReference>(
                 "import",
                 "./js/monacoInterop.js"
@@ -432,39 +480,39 @@
     }
 
     RenderFragment RenderFolder(FolderDto folder, int depth = 0) => @<div class="folder">
+        
+                         <div class="folder-name"
+                            style="margin-left:@(depth * 20)px"
+                            @oncontextmenu="(e) => OpenContextMenu(e, folder)"
+                            @oncontextmenu:preventDefault="true">
 
-                                                                        <div class="folder-name"
-                                                                             style="margin-left:@(depth * 20)px"
-                                                                             @oncontextmenu="(e) => OpenContextMenu(e, folder)"
-                                                                             @oncontextmenu:preventDefault="true">
+                            <i class="bi bi-folder2"></i>
+                            <span>@folder.Path</span>
+                             <button @onclick="() => folder.IsOpen = !folder.IsOpen">
+                                @(folder.IsOpen ? " < " : " > ")
+                             </button>
+                        </div>
 
-                                                                            <i class="bi bi-folder2"></i>
-                                                                            <span>@folder.Path</span>
+                        @if (folder.IsOpen)
+                        {
+                            @foreach (var file in folder.Files)
+                            {
+                                <div class="file"
+                                     style="margin-left:@((depth + 1) * 20)px"
+                                     @onclick="() => SelectFile(file)"
+                                     @oncontextmenu="(e) => ShowRemoveFile(e, file.Name)"
+                                     @oncontextmenu:preventDefault="true">
+                                    <span>@file.Name</span>
+                                </div>
+                            }
 
-                                                                            <button @onclick="() => folder.IsOpen = !folder.IsOpen">
-                                                                                @(folder.IsOpen ? "<" : ">")
-                                                                            </button>
-                                                                        </div>
+                            @foreach (var sub in folder.Folders)
+                            {
+                                @RenderFolder(sub, depth + 1)
+                            }
+                        }
 
-                                                                        @if (folder.IsOpen)
-                                                                        {
-                                                                            @foreach (var file in folder.Files)
-                                                                            {
-                                                                                <div class="file"
-                                                                                     style="margin-left:@((depth + 1) * 20)px"
-                                                                                     @onclick="() => SelectFile(file)">
-         
-                                                                                    <span>@file.Name</span>
-                                                                                </div>
-                                                                            }
-
-                                                                            @foreach (var sub in folder.Folders)
-                                                                            {
-                                                                                @RenderFolder(sub, depth + 1)
-                                                                            }
-                                                                        }
-
-                                                                    </div>;
+                        </div>;
     
     private async Task SelectFile(File file)
     {
@@ -573,5 +621,66 @@
     {
         _showCreateFolder = false;
         _nameFolderCreate.Name = "";
+    }
+    
+    [JSInvokable]
+    public async Task ReceiveFileFromDrop(string name, string content)
+    {
+        if (_root is null)
+            return;
+
+        var targetFolder = _currentFolderCreateFile ?? _root;
+
+        var newFile = new File(name, content, targetFolder.Id);
+
+        targetFolder.Files.Add(newFile);
+
+        await SelectFile(newFile);
+
+        StateHasChanged();
+    }
+    private List<(string path, string content)> Flatten(FolderDto folder, string currentPath = "")
+    {
+        var result = new List<(string, string)>();
+
+        var basePath = string.IsNullOrEmpty(currentPath)
+            ? folder.Path
+            : $"{currentPath}/{folder.Path}";
+
+        foreach (var file in folder.Files)
+        {
+            result.Add(($"{basePath}/{file.Name}", file.Content));
+        }
+
+        foreach (var sub in folder.Folders)
+        {
+            result.AddRange(Flatten(sub, basePath));
+        }
+
+        return result;
+    }
+    private async Task ExportProject()
+    {
+        if (_root is null)
+            return;
+
+        var flatFiles = Flatten(_root);
+
+        var files = flatFiles.Select(f => new
+        {
+            path = f.path,
+            content = f.content
+        });
+
+        var module = await JS.InvokeAsync<IJSObjectReference>(
+            "import",
+            "./js/exportZip.js"
+        );
+
+        await module.InvokeVoidAsync(
+            "downloadProjectZip",
+            "TextNuvemProject",
+            files
+        );
     }
 }

@@ -36,7 +36,7 @@ internal sealed class LoginCustomerHandler : IRequestHandler<LoginCustomerReques
 
         _customerRepository.Update(customer);
         
-        await _unitOfWork.CommitAsync();
+        await _unitOfWork.CommitAsync(cancellationToken);
         return response;
     }
 }

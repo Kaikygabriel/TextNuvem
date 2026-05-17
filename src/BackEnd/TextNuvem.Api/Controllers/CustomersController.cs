@@ -1,7 +1,9 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TextNuvem.Application.Dtos.Customers;
 using TextNuvem.Application.UseCases.Customers.Command.Request;
+using TextNuvem.Application.UseCases.Customers.Command.Response;
 using TextNuvem.Application.UseCases.Customers.Query.Request;
 
 namespace TextNuvem.Api.Controllers;
@@ -19,23 +21,26 @@ public class CustomerController : ControllerBase
 
     [HttpPost("RefreshToken")]
     [AllowAnonymous]
-    public async Task<ActionResult> RefreshToken(LoginByRefreshTokenRequest request)
+    [Produces<AuthCustomerResponse>]
+    public async Task<ActionResult> RefreshToken(LoginByRefreshTokenRequest request,CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(request);
+        var result = await _sender.Send(request,cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
     
     [HttpPost("Register")]
     [AllowAnonymous]
-    public async Task<ActionResult> Register(RegisterCustomerRequest request)
+    [Produces<AuthCustomerResponse>]
+    public async Task<ActionResult> Register(RegisterCustomerRequest request ,CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(request);
+        var result = await _sender.Send(request,cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
     
     [HttpPost("Login")]
     [AllowAnonymous]
-    public async Task<ActionResult> Login(LoginCustomerRequest request)
+    [Produces<AuthCustomerResponse>]
+    public async Task<ActionResult> Login(LoginCustomerRequest request,CancellationToken cancellationToken)
     {
         var result = await _sender.Send(request);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
@@ -43,11 +48,12 @@ public class CustomerController : ControllerBase
     
     [Authorize]
     [HttpGet("DashBoard")]
-    public async Task<ActionResult> DashBoard([FromQuery]GetCustomerDashBoardRequest request)
+    [Produces<CustomerDashBoard>]
+    public async Task<ActionResult> DashBoard([FromQuery]GetCustomerDashBoardRequest request,CancellationToken cancellationToken)
     {
         if (request.CustomerId.ToString() != User.Identity!.Name)
             return Forbid();
-        var result = await _sender.Send(request);
+        var result = await _sender.Send(request,cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
     

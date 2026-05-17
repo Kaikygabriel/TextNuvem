@@ -16,7 +16,7 @@ internal sealed class GetProjectHandler: IRequestHandler<GetProjectRequest,Resul
 
     public async Task<Result<GetProjectDto>> Handle(GetProjectRequest request, CancellationToken cancellationToken)
     {
-        var projectDto =  await _projectQuery.GetById(request.ProjectId);
+        var projectDto =  await _projectQuery.GetById(request.ProjectId,cancellationToken);
         if (projectDto is null)
             return new Error("Project not found!");
         return projectDto;

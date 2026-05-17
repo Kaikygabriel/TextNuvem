@@ -209,11 +209,11 @@ else
         }
         
         var client = new RestClient();
-        var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Project")
-            .AddJsonBody(new {customerId = Guid.Parse(idCustomer!),projectId = _projectRemove.Id })
+        var request = new RestRequest($"{ApiConfiguration.BaseUrl}/Project?customerid={idCustomer}&projectid={_projectRemove.Id}")
             .AddHeader("Authorization",$"Bearer {token}");
         
         var response = await client.DeleteAsync(request);
+        Nav.NavigateTo("/");
     }
 
 }

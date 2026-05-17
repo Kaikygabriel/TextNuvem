@@ -19,9 +19,9 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult> Get([FromQuery]GetProjectRequest request)
+    public async Task<ActionResult> Get([FromQuery]GetProjectRequest request,CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(request);
+        var result = await _sender.Send(request,cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
     }
     
@@ -53,8 +53,10 @@ public class ProjectController : ControllerBase
         return result.IsSuccess ? Ok() : BadRequest(result.Error);
     }
     [HttpDelete]
-    public async Task<ActionResult> Remove(RemoveProjectRequest request)
+    public async Task<ActionResult> Remove( [FromQuery] Guid customerId,
+                                               [FromQuery] Guid projectId)
     {
+        var request = new RemoveProjectRequest(customerId, projectId);
         var result = await _sender.Send(request);
         return result.IsSuccess ? Ok() : BadRequest(result.Error);
     }

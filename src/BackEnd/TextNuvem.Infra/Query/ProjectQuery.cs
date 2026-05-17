@@ -17,11 +17,11 @@ internal sealed class ProjectQuery : IProjectQuery
         _compactorService = compactorService;
     }
 
-    public async Task<GetProjectDto?> GetById(Guid id)
+    public async Task<GetProjectDto?> GetById(Guid id,CancellationToken cancellationToken)
     {
         var project = await _appDbContext.Projects
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id,cancellationToken);
         
         if (project is null)
             return null;

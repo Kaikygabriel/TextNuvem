@@ -16,7 +16,7 @@ internal sealed class GetCustomerDashBoardHandle :IRequestHandler<GetCustomerDas
 
     public async Task<Result<CustomerDashBoard>> Handle(GetCustomerDashBoardRequest request, CancellationToken cancellationToken)
     {
-        var customer = await _customerQuery.GetDashBoardById(request.CustomerId);
+        var customer = await _customerQuery.GetDashBoardById(request.CustomerId,cancellationToken);
         if (customer is null)
             return new Error("Customer not found !");
         
