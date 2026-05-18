@@ -49,7 +49,9 @@
         }
         else
         { 
-            <button @onclick="ExportProject">Download Project</button>
+            <div class="d-flex justify-content-end">
+                <button @onclick="ExportProject" class="topbar-btn w-25 d-flex justify-content-center" >Download Project</button>
+            </div>
 
             <div id="monaco-editor" class="monaco-host"></div>
         }

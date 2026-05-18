@@ -41,6 +41,22 @@
                 vs: "https://unpkg.com/monaco-editor@0.52.0/min/vs"
             }
         });
+        window.themeManager = {
+            setTheme: (theme) => {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+            },
+            getTheme: () => {
+                return localStorage.getItem('theme') || 'dark';
+            },
+            initTheme: () => {
+                const theme = localStorage.getItem('theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        };
+
+        // Executa imediatamente
+        window.themeManager.initTheme();
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script>

@@ -399,3 +399,16 @@
     inset:0;
     z-index:9998;
 }
+.topbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #3c3c3c;
+    background: #2d2d30;
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: .15s ease;
+}

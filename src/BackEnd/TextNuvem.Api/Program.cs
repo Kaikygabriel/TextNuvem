@@ -12,8 +12,8 @@ var connection = builder.Configuration.GetConnectionString("DefaultConnection") 
 var dataSourceBuilder =
     new NpgsqlDataSourceBuilder(connection);
 dataSourceBuilder.EnableDynamicJson();
-
 var dataSource = dataSourceBuilder.Build();
+
 
 builder.Services.AddControllers();
 builder.Services.AddApplication();
@@ -38,6 +38,8 @@ if (app.Environment.IsDevelopment())
     app.UseExceptionGlobalHandler();
 
 app.MapOpenApi();
+
+app.UseHttpsRedirection();
 
 app.UseSwaggerUI(x=>x.SwaggerEndpoint("/openapi/v1.json","v1"));
 

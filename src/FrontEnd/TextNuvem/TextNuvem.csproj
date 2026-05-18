@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Pages\Projects\Components\ContributionHeapMap.razor" />
+    <_ContentIncludedByDefault Remove="Layout\Components\Settings.razor" />
   </ItemGroup>
 
 </Project>
